@@ -12,10 +12,23 @@ class Polls extends Model
 
     protected $table = 'polls';
 
+    protected $fillable = [
+        'title',
+        'description',
+        'status',
+        'starts_at',
+        'ends_at',
+        'user_id',
+        'essence_numen_id',
+    ];
+
      protected static function booted()
     {
         static::created(function ($poll) {
-            $essence = EssenceNumen::create();
+            $essence = EssenceNumen::create([ 
+                'type' => 'poll',
+            ]);
+
             $poll->essence_numen_id = $essence->id;
             $poll->save();
         });

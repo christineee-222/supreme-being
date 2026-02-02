@@ -2,28 +2,43 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\User;
 use App\Models\EssenceNumen;
 
 class Events extends Model
 {
-    use HasFactory;
+    protected $fillable = [
+        'title',
+        'description',
+        'starts_at',
+        'ends_at',
+        'status',
+        'user_id',
+        'essence_numen_id',
+    ];
 
-        protected static function booted()
+    public function user()
     {
-        static::created(function ($event) {
-            $essence = EssenceNumen::create([
-                'type' => 'event',
-            ]);
-
-            $event->essence_numen_id = $essence->id;
-            $event->save();
-        });
+        return $this->belongsTo(User::class);
     }
 
     public function essenceNumen()
     {
-        return $this->belongsTo(EssenceNumen::class);
+        return $this->belongsTo(EssenceNumen::class, 'essence_numen_id');
+    }
+
+    protected static function booted()
+    {
+        static::creating(function ($event) {
+            if (!$event->essence_numen_id) {
+                $essence = EssenceNumen::create([
+                    'type' => 'event',
+                ]);
+
+                $event->essence_numen_id = $essence->id;
+            }
+        });
     }
 }
+

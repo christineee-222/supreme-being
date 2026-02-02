@@ -2,16 +2,12 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\EssenceNumen;
+use App\Models\User;
 
 class Polls extends Model
 {
-    use HasFactory;
-
-    protected $table = 'polls';
-
     protected $fillable = [
         'title',
         'description',
@@ -22,20 +18,31 @@ class Polls extends Model
         'essence_numen_id',
     ];
 
-     protected static function booted()
+    // A poll belongs to a user (creator / owner)
+    public function user()
     {
-        static::created(function ($poll) {
-            $essence = EssenceNumen::create([ 
-                'type' => 'poll',
-            ]);
-
-            $poll->essence_numen_id = $essence->id;
-            $poll->save();
-        });
+        return $this->belongsTo(User::class);
     }
 
+    // A poll belongs to an essence
     public function essenceNumen()
     {
-        return $this->belongsTo(EssenceNumen::class);
+        return $this->belongsTo(EssenceNumen::class, 'essence_numen_id');
+    }
+
+    // Auto-create essence when a poll is created
+    protected static function booted()
+    {
+        static::creating(function ($poll) {
+            if (!$poll->essence_numen_id) {
+                $essence = EssenceNumen::create([
+                    'type' => 'poll',
+                ]);
+
+                $poll->essence_numen_id = $essence->id;
+            }
+        });
     }
 }
+
+

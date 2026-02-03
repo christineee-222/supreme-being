@@ -13,6 +13,21 @@ class PollController extends Controller
 
         return response()->json(['status' => 'authorized']);
     }
+
+    public function store(Request $request)
+    {
+        $this->authorize('create', Poll::class);
+
+        $poll = Poll::create([
+            'user_id' => auth()->id(),
+            'title' => $request->input('title'),
+            'description' => $request->input('description'),
+            'status' => 'draft',
+        ]);
+
+        return response()->json($poll, 201);
+    }
 }
+
 
 

@@ -3,42 +3,46 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Models\User;
 use App\Models\EssenceNumen;
+use App\Models\User;
 
-class Events extends Model
+class Poll extends Model
 {
     protected $fillable = [
         'title',
         'description',
+        'status',
         'starts_at',
         'ends_at',
-        'status',
         'user_id',
         'essence_numen_id',
     ];
 
+    // A poll belongs to a user (creator / owner)
     public function user()
     {
         return $this->belongsTo(User::class);
     }
 
+    // A poll belongs to an essence
     public function essenceNumen()
     {
         return $this->belongsTo(EssenceNumen::class, 'essence_numen_id');
     }
 
+    // Auto-create essence when a poll is created
     protected static function booted()
     {
-        static::creating(function ($event) {
-            if (!$event->essence_numen_id) {
+        static::creating(function ($poll) {
+            if (!$poll->essence_numen_id) {
                 $essence = EssenceNumen::create([
-                    'type' => 'event',
+                    'type' => 'poll',
                 ]);
 
-                $event->essence_numen_id = $essence->id;
+                $poll->essence_numen_id = $essence->id;
             }
         });
     }
 }
+
 

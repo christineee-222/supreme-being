@@ -6,11 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 use App\Models\User;
 use App\Models\EssenceNumen;
 
-class Donations extends Model
+class Portrait extends Model
 {
     protected $fillable = [
-        'amount',
-        'currency',
+        'title',
+        'description',
         'status',
         'user_id',
         'essence_numen_id',
@@ -28,13 +28,13 @@ class Donations extends Model
 
     protected static function booted()
     {
-        static::creating(function ($donation) {
-            if (!$donation->essence_numen_id) {
+        static::creating(function ($portrait) {
+            if (!$portrait->essence_numen_id) {
                 $essence = EssenceNumen::create([
-                    'type' => 'donation',
+                    'type' => 'portrait',
                 ]);
 
-                $donation->essence_numen_id = $essence->id;
+                $portrait->essence_numen_id = $essence->id;
             }
         });
     }

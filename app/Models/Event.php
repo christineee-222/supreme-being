@@ -6,11 +6,13 @@ use Illuminate\Database\Eloquent\Model;
 use App\Models\User;
 use App\Models\EssenceNumen;
 
-class Forums extends Model
+class Event extends Model
 {
     protected $fillable = [
         'title',
         'description',
+        'starts_at',
+        'ends_at',
         'status',
         'user_id',
         'essence_numen_id',
@@ -28,13 +30,13 @@ class Forums extends Model
 
     protected static function booted()
     {
-        static::creating(function ($forum) {
-            if (!$forum->essence_numen_id) {
+        static::creating(function ($event) {
+            if (!$event->essence_numen_id) {
                 $essence = EssenceNumen::create([
-                    'type' => 'forum',
+                    'type' => 'event',
                 ]);
 
-                $forum->essence_numen_id = $essence->id;
+                $event->essence_numen_id = $essence->id;
             }
         });
     }

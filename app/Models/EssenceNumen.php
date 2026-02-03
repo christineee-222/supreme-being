@@ -12,7 +12,7 @@ class EssenceNumen extends Model
 
     public function poll()
     {
-        return $this->hasOne(Polls::class, 'essence_numen_id');
+        return $this->hasOne(Poll::class, 'essence_numen_id');
     }
 }
 

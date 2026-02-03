@@ -2,11 +2,11 @@
 
 namespace App\Policies;
 
-use App\Models\Poll;
+use App\Models\Legislation;
 use App\Models\User;
 use Illuminate\Auth\Access\Response;
 
-class PollPolicy
+class LegislationPolicy
 {
     /**
      * Determine whether the user can view any models.
@@ -19,7 +19,7 @@ class PollPolicy
     /**
      * Determine whether the user can view the model.
      */
-    public function view(User $user, Poll $poll): bool
+    public function view(User $user, Legislation $legislation): bool
     {
         return true;
     }
@@ -35,24 +35,23 @@ class PollPolicy
     /**
      * Determine whether the user can update the model.
      */
-    public function update(User $user, Poll $poll): bool
+    public function update(User $user, Legislation $legislation): bool
     {
-        return $poll->user_id === $user->id;
+        return $legislation->user_id === $user->id;
     }
-
 
     /**
      * Determine whether the user can delete the model.
      */
-    public function delete(User $user, Poll $poll): bool
+    public function delete(User $user, Legislation $legislation): bool
     {
-        return $poll->user_id === $user->id;
+        return $legislation->user_id === $user->id;
     }
 
     /**
      * Determine whether the user can restore the model.
      */
-    public function restore(User $user, Poll $poll): bool
+    public function restore(User $user, Legislation $legislation): bool
     {
         return false;
     }
@@ -60,7 +59,7 @@ class PollPolicy
     /**
      * Determine whether the user can permanently delete the model.
      */
-    public function forceDelete(User $user, Poll $poll): bool
+    public function forceDelete(User $user, Legislation $legislation): bool
     {
         return false;
     }

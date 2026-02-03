@@ -4,10 +4,16 @@ namespace App\Policies;
 
 use App\Models\Poll;
 use App\Models\User;
+use App\Policies\Concerns\AllowsRoles;
+use App\Policies\Concerns\OwnsModel;
+use App\Policies\Traits\InteractsWithPublishableModels;
 use Illuminate\Auth\Access\Response;
 
 class PollPolicy
 {
+    use AllowsRoles, OwnsModel;
+    use InteractsWithPublishableModels;
+
     public function viewAny(User $user): bool
     {
         return true;
@@ -25,25 +31,25 @@ class PollPolicy
 
     public function update(User $user, Poll $poll): bool
     {
-        if ($user->isAdmin() || $user->isModerator()) {
+        if ($this->isAdminOrModerator($user)) {
             return true;
         }
 
-        return $poll->user_id === $user->id;
+        return $this->owns($user, $poll);
     }
 
     public function delete(User $user, Poll $poll): bool
     {
-        if ($user->isAdmin()) {
+        if ($this->isAdmin($user)) {
             return true;
         }
 
-        return $poll->user_id === $user->id;
+        return $this->owns($user, $poll);
     }
 
     public function comment(User $user, Poll $poll): bool
     {
-        if ($user->isAdmin() || $user->isModerator()) {
+        if ($this->isAdminOrModerator($user)) {
             return true;
         }
 
@@ -52,23 +58,21 @@ class PollPolicy
 
     public function vote(User $user, Poll $poll): bool
     {
-        if ($user->isAdmin() || $user->isModerator()) {
-            return true;
-        }
-
-        return $poll->status === 'published';
+        return $this->canInteract($user, $poll);
     }
+
 
     public function restore(User $user, Poll $poll): bool
     {
-        return $user->isAdmin();
+        return $this->isAdmin($user);
     }
 
     public function forceDelete(User $user, Poll $poll): bool
     {
-        return $user->isAdmin();
+        return $this->isAdmin($user);
     }
 }
+
 
 
 

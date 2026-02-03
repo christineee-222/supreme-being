@@ -4,67 +4,57 @@ namespace App\Policies;
 
 use App\Models\Forum;
 use App\Models\User;
+use App\Policies\Concerns\AllowsRoles;
+use App\Policies\Concerns\OwnsModel;
+use App\Policies\Traits\InteractsWithPublishableModels;
 use Illuminate\Auth\Access\Response;
 
 class ForumPolicy
 {
-    /**
-     * Determine whether the user can view any models.
-     */
-    public function viewAny(User $user): bool
+    use AllowsRoles, OwnsModel;
+    use InteractsWithPublishableModels;
+
+    public function viewAny(?User $user): bool
     {
         return true;
     }
 
-    /**
-     * Determine whether the user can view the model.
-     */
-    public function view(User $user, Forum $forum): bool
+    public function view(?User $user, Forum $forum): bool
     {
         return true;
     }
 
-    /**
-     * Determine whether the user can create models.
-     */
     public function create(User $user): bool
     {
         return true;
     }
 
-    /**
-     * Determine whether the user can update the model.
-     */
     public function update(User $user, Forum $forum): bool
     {
-        return $user->isAdmin()
-            || $user->isModerator()
-            || $forum->user_id === $user->id;
+        if ($this->isAdminOrModerator($user)) {
+            return true;
+        }
+
+        return $this->owns($user, $forum);
     }
 
-    /**
-     * Determine whether the user can delete the model.
-     */
     public function delete(User $user, Forum $forum): bool
     {
-        return $user->isAdmin()
-            || $user->isModerator()
-            || $forum->user_id === $user->id;
+        if ($this->isAdminOrModerator($user)) {
+            return true;
+        }
+
+        return $this->owns($user, $forum);
     }
 
-    /**
-     * Determine whether the user can restore the model.
-     */
     public function restore(User $user, Forum $forum): bool
     {
-        return false;
+        return $this->isAdmin($user);
     }
 
-    /**
-     * Determine whether the user can permanently delete the model.
-     */
     public function forceDelete(User $user, Forum $forum): bool
     {
-        return false;
+        return $this->isAdmin($user);
     }
 }
+

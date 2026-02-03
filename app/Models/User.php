@@ -22,6 +22,7 @@ class User extends Authenticatable
         'email',
         'workos_id',
         'avatar',
+        'role'
     ];
 
     /**
@@ -46,4 +47,16 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin';
+    }
+
+    public function isModerator(): bool
+    {
+        return in_array($this->role, ['moderator', 'admin']);
+    }
 }
+

@@ -37,7 +37,9 @@ class LegislationPolicy
      */
     public function update(User $user, Legislation $legislation): bool
     {
-        return $legislation->user_id === $user->id;
+        return $user->isAdmin()
+            || $user->isModerator()
+            || $legislation->user_id === $user->id;
     }
 
     /**
@@ -45,7 +47,9 @@ class LegislationPolicy
      */
     public function delete(User $user, Legislation $legislation): bool
     {
-        return $legislation->user_id === $user->id;
+        return $user->isAdmin()
+            || $user->isModerator()
+            || $legislation->user_id === $user->id;
     }
 
     /**

@@ -37,7 +37,9 @@ class PortraitPolicy
      */
     public function update(User $user, Portrait $portrait): bool
     {
-        return $portrait->user_id === $user->id;
+        return $user->isAdmin()
+            || $user->isModerator()
+            || $portrait->user_id === $user->id;
     }
 
     /**
@@ -45,7 +47,9 @@ class PortraitPolicy
      */
     public function delete(User $user, Portrait $portrait): bool
     {
-        return $portrait->user_id === $user->id;
+        return $user->isAdmin()
+            || $user->isModerator()
+            || $portrait->user_id === $user->id;
     }
 
     /**

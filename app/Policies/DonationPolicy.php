@@ -37,7 +37,9 @@ class DonationPolicy
      */
     public function update(User $user, Donation $donation): bool
     {
-        return $donation->user_id === $user->id;
+        return $user->isAdmin()
+            || $user->isModerator()
+            || $donation->user_id === $user->id;
     }
 
     /**
@@ -45,7 +47,9 @@ class DonationPolicy
      */
     public function delete(User $user, Donation $donation): bool
     {
-        return $donation->user_id === $user->id;
+        return $user->isAdmin()
+            || $user->isModerator()
+            || $donation->user_id === $user->id;
     }
 
     /**

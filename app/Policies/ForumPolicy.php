@@ -37,7 +37,9 @@ class ForumPolicy
      */
     public function update(User $user, Forum $forum): bool
     {
-        return $forum->user_id === $user->id;
+        return $user->isAdmin()
+            || $user->isModerator()
+            || $forum->user_id === $user->id;
     }
 
     /**
@@ -45,7 +47,9 @@ class ForumPolicy
      */
     public function delete(User $user, Forum $forum): bool
     {
-        return $forum->user_id === $user->id;
+        return $user->isAdmin()
+            || $user->isModerator()
+            || $forum->user_id === $user->id;
     }
 
     /**

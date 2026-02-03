@@ -38,6 +38,9 @@ Route::middleware([
     
     Route::resource('legislations', LegislationController::class)
         ->only(['store', 'update', 'destroy']);
+    
+        Route::post('polls/{poll}/vote', [PollController::class, 'vote']);
+
 });
 
 

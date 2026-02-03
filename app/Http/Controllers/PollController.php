@@ -27,6 +27,16 @@ class PollController extends Controller
 
         return response()->json($poll, 201);
     }
+
+    public function vote(Poll $poll)
+    {
+        $this->authorize('vote', $poll);
+
+    // voting logic will go here later
+
+        return response()->json(['status' => 'vote allowed']);
+    }
+
 }
 
 

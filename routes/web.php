@@ -43,7 +43,9 @@ Route::middleware([
     Route::post('polls/{poll}/vote', [PollController::class, 'vote']);
 
     Route::post('/forums/{forum}/comments', [CommentController::class, 'store'])
-    ->middleware('auth');
+    ->middleware('auth')
+    ->name('forums.comments.store');
+
 
 });
 

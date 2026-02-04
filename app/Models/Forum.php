@@ -2,14 +2,16 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\User;
 use App\Models\EssenceNumen;
 use App\Models\Comment;
 
-
 class Forum extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'title',
         'description',
@@ -17,6 +19,12 @@ class Forum extends Model
         'user_id',
         'essence_numen_id',
     ];
+
+    /*
+    |--------------------------------------------------------------------------
+    | Relationships
+    |--------------------------------------------------------------------------
+    */
 
     public function user()
     {
@@ -28,16 +36,21 @@ class Forum extends Model
         return $this->hasMany(Comment::class);
     }
 
-
     public function essenceNumen()
     {
         return $this->belongsTo(EssenceNumen::class, 'essence_numen_id');
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | Model Events
+    |--------------------------------------------------------------------------
+    */
+
     protected static function booted()
     {
         static::creating(function ($forum) {
-            if (!$forum->essence_numen_id) {
+            if (! $forum->essence_numen_id) {
                 $essence = EssenceNumen::create([
                     'type' => 'forum',
                 ]);
@@ -47,4 +60,5 @@ class Forum extends Model
         });
     }
 }
+
 

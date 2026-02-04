@@ -3,24 +3,21 @@
 namespace App\Http\Controllers;
 
 use App\Models\Forum;
-use Illuminate\Http\Request;
+use App\Http\Requests\StoreCommentRequest;
 
 class CommentController extends Controller
 {
-    public function store(Request $request, Forum $forum)
+    public function store(StoreCommentRequest $request, Forum $forum)
     {
         $this->authorize('comment', $forum);
 
-        $validated = $request->validate([
-            'body' => 'required|string',
-        ]);
-
         $forum->comments()->create([
-            'body' => $validated['body'],
-            'user_id' => auth()->id(),
+            'body' => $request->validated('body'),
+            'user_id' => $request->user()->id,
         ]);
 
         return back();
     }
 }
+
 

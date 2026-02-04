@@ -127,6 +127,7 @@ Transparency is a core design requirement.
 - Only creator may update
 - Immutable after start date/time
 - Comments allowed even after event conclusion
+- Sorted by feature
 
 ---
 
@@ -136,6 +137,8 @@ Transparency is a core design requirement.
 - Users may propose legislation
 - Requires admin/mod approval to publish
 - Updates are suggested by users and approved by admin/mod
+- Easy-to-read translations, local and national
+- Sorted by feature
 
 Legislation maintains a public, auditable history.
 
@@ -151,6 +154,8 @@ Legislation maintains a public, auditable history.
   - Identity verified by admin/mod
 - Updates are suggested and approved
 - Deletion only for legal necessity
+- Snapshot of compiled information on entity
+- Sorted by feature
 
 Portraits are **not** user profiles.
 
@@ -212,5 +217,5 @@ This project intentionally favors correctness and durability over speed.
 
 ## ❤️ Philosophy
 
-> This app is designed so that important conversations cannot simply disappear. Juggernaut focuses on the ethical consumption/sharing of information, pooling/sharing resources for mutual aid and establishing information archives in perpetuity. Will include chat function which has end-to-end encryption, is open-source and peer-to-peer which operates without internet or cell service using Bluetooth Low Energy (BLE) to create a mesh network for emergency communications, censor-proof.
+> This app is designed so that important conversations cannot simply disappear. Juggernaut focuses on the ethical consumption/sharing of information, pooling/sharing resources for mutual aid and establishing information archives in perpetuity. Will include chat function which has end-to-end encryption, is open-source and peer-to-peer which operates without internet or cell service using Bluetooth Low Energy (BLE) to create a mesh network for emergency communications, censor-proof. Intended to be accessible for visually impaired.
 

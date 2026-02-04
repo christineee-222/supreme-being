@@ -217,5 +217,5 @@ This project intentionally favors correctness and durability over speed.
 
 ## ❤️ Philosophy
 
-> This app is designed so that important conversations cannot simply disappear. Juggernaut focuses on the ethical consumption/sharing of information, pooling/sharing resources for mutual aid and establishing information archives in perpetuity. Will include chat function which has end-to-end encryption, is open-source and peer-to-peer which operates without internet or cell service using Bluetooth Low Energy (BLE) to create a mesh network for emergency communications, censor-proof. Intended to be accessible for visually impaired.
+> This app is designed so that important conversations cannot simply disappear. Juggernaut focuses on the ethical consumption/sharing of information, pooling/sharing resources for mutual aid and establishing information archives in perpetuity. Will include chat function which has end-to-end encryption, is open-source and peer-to-peer which operates without internet or cell service using Bluetooth Low Energy (BLE) to create a mesh network for emergency communications, censor-proof. Intended to be accessible for visually impaired. 
 

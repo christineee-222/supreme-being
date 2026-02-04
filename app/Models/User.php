@@ -2,12 +2,10 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use App\Models\Comment;
-
 
 class User extends Authenticatable
 {
@@ -24,14 +22,8 @@ class User extends Authenticatable
         'email',
         'workos_id',
         'avatar',
-        'role'
+        'role',
     ];
-
-    public function comments()
-    {
-        return $this->hasMany(Comment::class);
-    }
-
 
     /**
      * The attributes that should be hidden for serialization.
@@ -44,7 +36,7 @@ class User extends Authenticatable
     ];
 
     /**
-     * Get the attributes that should be cast.
+     * The attributes that should be cast.
      *
      * @return array<string, string>
      */
@@ -52,11 +44,20 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
-            'password' => 'hashed',
         ];
     }
 
-    
+    /**
+     * Relationships
+     */
+    public function comments()
+    {
+        return $this->hasMany(Comment::class);
+    }
+
+    /**
+     * Role helpers (used by policies)
+     */
     public function isAdmin(): bool
     {
         return $this->role === 'admin';
@@ -64,7 +65,8 @@ class User extends Authenticatable
 
     public function isModerator(): bool
     {
-        return in_array($this->role, ['moderator', 'admin']);
+        return in_array($this->role, ['moderator', 'admin'], true);
     }
 }
+
 

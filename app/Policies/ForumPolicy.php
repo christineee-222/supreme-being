@@ -29,6 +29,12 @@ class ForumPolicy
         return true;
     }
 
+    public function comment(User $user, Forum $forum): bool
+    {
+        return $this->canInteract($user, $forum);
+    }
+
+
     public function update(User $user, Forum $forum): bool
     {
         if ($this->isAdminOrModerator($user)) {

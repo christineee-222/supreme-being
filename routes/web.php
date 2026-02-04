@@ -9,6 +9,7 @@ use App\Http\Controllers\EventController;
 use App\Http\Controllers\ForumController;
 use App\Http\Controllers\PortraitController;
 use App\Http\Controllers\LegislationController;
+use App\Http\Controllers\CommentController;
 
 
 Route::get('/', fn () => Inertia::render('welcome'))->name('home');
@@ -39,7 +40,10 @@ Route::middleware([
     Route::resource('legislations', LegislationController::class)
         ->only(['store', 'update', 'destroy']);
     
-        Route::post('polls/{poll}/vote', [PollController::class, 'vote']);
+    Route::post('polls/{poll}/vote', [PollController::class, 'vote']);
+
+    Route::post('/forums/{forum}/comments', [CommentController::class, 'store'])
+    ->middleware('auth');
 
 });
 

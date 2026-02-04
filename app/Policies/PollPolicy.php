@@ -1,25 +1,29 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Policies;
 
 use App\Models\Poll;
 use App\Models\User;
 use App\Policies\Concerns\AllowsRoles;
 use App\Policies\Concerns\OwnsModel;
+use App\Policies\Concerns\HasImmutablePublishedContent;
 use App\Policies\Traits\InteractsWithPublishableModels;
-use Illuminate\Auth\Access\Response;
 
-class PollPolicy
+final class PollPolicy
 {
-    use AllowsRoles, OwnsModel;
+    use AllowsRoles;
+    use OwnsModel;
+    use HasImmutablePublishedContent;
     use InteractsWithPublishableModels;
 
-    public function viewAny(User $user): bool
+    public function viewAny(?User $user): bool
     {
         return true;
     }
 
-    public function view(User $user, Poll $poll): bool
+    public function view(?User $user, Poll $poll): bool
     {
         return true;
     }
@@ -35,6 +39,11 @@ class PollPolicy
             return true;
         }
 
+        // 🔒 immutability is absolute for non-admins
+        if ($poll->status === 'published') {
+            return false;
+        }
+
         return $this->owns($user, $poll);
     }
 
@@ -42,6 +51,10 @@ class PollPolicy
     {
         if ($this->isAdmin($user)) {
             return true;
+        }
+
+        if ($poll->status === 'published') {
+            return false;
         }
 
         return $this->owns($user, $poll);
@@ -61,7 +74,6 @@ class PollPolicy
         return $this->canInteract($user, $poll);
     }
 
-
     public function restore(User $user, Poll $poll): bool
     {
         return $this->isAdmin($user);
@@ -72,6 +84,8 @@ class PollPolicy
         return $this->isAdmin($user);
     }
 }
+
+
 
 
 

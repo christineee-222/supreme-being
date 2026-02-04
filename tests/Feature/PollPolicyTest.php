@@ -29,5 +29,20 @@ final class PollPolicyTest extends TestCase
             Gate::forUser($user)->allows('update', $poll)
         );
     }
+
+    public function owner_can_update_draft_poll(): void
+    {
+        $user = User::factory()->create();
+
+        $poll = Poll::factory()->create([
+            'user_id' => $user->id,
+            'status' => 'draft',
+    ]);
+
+        $this->assertTrue(
+            Gate::forUser($user)->allows('update', $poll)
+        );
+}
+
 }
 

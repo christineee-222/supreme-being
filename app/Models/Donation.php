@@ -1,13 +1,18 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\User;
 use App\Models\EssenceNumen;
 
-class Donation extends Model
+final class Donation extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'amount',
         'currency',
@@ -28,8 +33,8 @@ class Donation extends Model
 
     protected static function booted()
     {
-        static::creating(function ($donation) {
-            if (!$donation->essence_numen_id) {
+        static::creating(function (Donation $donation) {
+            if (! $donation->essence_numen_id) {
                 $essence = EssenceNumen::create([
                     'type' => 'donation',
                 ]);
@@ -39,4 +44,5 @@ class Donation extends Model
         });
     }
 }
+
 

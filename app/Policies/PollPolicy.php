@@ -39,8 +39,8 @@ final class PollPolicy
             return true;
         }
 
-        // 🔒 immutability is absolute for non-admins
-        if ($poll->status === 'published') {
+        // 🔒 published polls are immutable for non-admins
+        if ($this->isImmutable($poll)) {
             return false;
         }
 
@@ -53,7 +53,7 @@ final class PollPolicy
             return true;
         }
 
-        if ($poll->status === 'published') {
+        if ($this->isImmutable($poll)) {
             return false;
         }
 
@@ -84,6 +84,7 @@ final class PollPolicy
         return $this->isAdmin($user);
     }
 }
+
 
 
 

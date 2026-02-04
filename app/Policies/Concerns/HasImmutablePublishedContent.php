@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace App\Policies\Concerns;
 
-use App\Models\User;
-
 trait HasImmutablePublishedContent
 {
-    protected function cannotModifyIfPublished(User $user, object $model): bool
+    protected function isImmutable(object $model): bool
     {
-        if (! property_exists($model, 'status')) {
+        if (! method_exists($model, 'getAttribute')) {
             return false;
         }
 
-        return $model->status === 'published';
+        return $model->getAttribute('status') === 'published';
     }
 }
+
+

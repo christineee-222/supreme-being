@@ -2,8 +2,8 @@
 
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
-use Laravel\WorkOS\Http\Middleware\ValidateSessionWithWorkOS;
 
+use App\Http\Controllers\Auth\WorkOSAuthController;
 use App\Http\Controllers\PollController;
 use App\Http\Controllers\DonationController;
 use App\Http\Controllers\EventController;
@@ -23,18 +23,30 @@ Route::get('/', fn () => Inertia::render('welcome'))->name('home');
 
 /*
 |--------------------------------------------------------------------------
+| WorkOS Authentication Routes (Web)
+|--------------------------------------------------------------------------
+|
+| These are intentionally PUBLIC.
+| They start the OAuth flow and receive the callback.
+|
+*/
+
+Route::get('/login', [WorkOSAuthController::class, 'redirect'])->name('login');
+Route::get('/auth/workos/callback', [WorkOSAuthController::class, 'callback']);
+
+/*
+|--------------------------------------------------------------------------
 | Authenticated Routes
 |--------------------------------------------------------------------------
 */
 
-    Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth'])->group(function () {
 
-
-    Route::get('dashboard', fn () => Inertia::render('dashboard'))
+    Route::get('/dashboard', fn () => Inertia::render('dashboard'))
         ->name('dashboard');
-    Route::get('/events/{event}', [EventController::class, 'show'])
-    ->name('events.show');
 
+    Route::get('/events/{event}', [EventController::class, 'show'])
+        ->name('events.show');
 
     /*
     |--------------------------------------------------------------------------
@@ -84,5 +96,7 @@ Route::get('/', fn () => Inertia::render('welcome'))->name('home');
 
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';
+
+
 
 

@@ -1,41 +1,55 @@
-import { Head } from '@inertiajs/react';
+import React from 'react';
 
-interface Event {
-  id: number;
-  title?: string;
-  starts_at?: string;
+interface User {
+    id: number;
+    name: string;
 }
 
 interface EventRsvp {
-  id: number;
-  status: string;
+    id: number;
+    status: 'going' | 'interested' | 'not_going';
+    user_id: number;
+    user?: User;
+}
+
+interface Event {
+    id: number;
+    status: string | null;
+    starts_at: string | null;
+    rsvps?: EventRsvp[];
 }
 
 interface Props {
-  event: Event;
-  userRsvp: EventRsvp | null;
+    event: Event;
+    userRsvp: EventRsvp | null;
 }
 
 export default function Show({ event, userRsvp }: Props) {
-  return (
-    <>
-      <Head title="Event" />
+    return (
+        <div className="space-y-4">
+            <h1 className="text-2xl font-bold">
+                Event #{event.id}
+            </h1>
 
-      <div className="max-w-3xl mx-auto py-8 space-y-6">
-        <h1 className="text-2xl font-bold">
-          Event #{event.id}
-        </h1>
+            <div>
+                <strong>Status:</strong> {event.status ?? 'scheduled'}
+            </div>
 
-        {userRsvp ? (
-          <p className="text-sm text-green-600">
-            Your RSVP status: {userRsvp.status}
-          </p>
-        ) : (
-          <p className="text-sm text-gray-500">
-            You have not RSVP’d yet.
-          </p>
-        )}
-      </div>
-    </>
-  );
+            <div>
+                <strong>Starts at:</strong> {event.starts_at}
+            </div>
+
+            {userRsvp ? (
+                <div className="p-3 border rounded">
+                    <strong>Your RSVP:</strong> {userRsvp.status}
+                </div>
+            ) : (
+                <div className="italic text-gray-600">
+                    You have not RSVP’d yet.
+                </div>
+            )}
+        </div>
+    );
 }
+
+

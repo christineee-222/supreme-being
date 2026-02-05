@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Event;
-use App\Models\EventRsvp;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -11,16 +10,12 @@ class EventController extends Controller
 {
     public function show(Event $event)
     {
-        $user = auth()->user();
+        $event->load([
+            'rsvps.user',
+        ]);
 
-        $userRsvp = null;
-
-        if ($user) {
-            $userRsvp = EventRsvp::query()
-                ->where('event_id', $event->id)
-                ->where('user_id', $user->id)
-                ->first();
-        }
+        $userRsvp = $event->rsvps
+            ->firstWhere('user_id', auth()->id());
 
         return Inertia::render('Events/Show', [
             'event' => $event,
@@ -34,7 +29,7 @@ class EventController extends Controller
 
         $event = Event::create([
             'user_id' => auth()->id(),
-            // add real fields later
+            // real fields later
         ]);
 
         return response()->json($event);
@@ -45,12 +40,13 @@ class EventController extends Controller
         $this->authorize('update', $event);
 
         $event->update([
-            // add editable fields later
+            // editable fields later
         ]);
 
         return response()->json(['status' => 'authorized']);
     }
 }
+
 
 
 

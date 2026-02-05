@@ -27,10 +27,8 @@ Route::get('/', fn () => Inertia::render('welcome'))->name('home');
 |--------------------------------------------------------------------------
 */
 
-Route::middleware([
-    'auth',
-    /**ValidateSessionWithWorkOS::class,*/
-])->group(function () {
+    Route::middleware(['auth'])->group(function () {
+
 
     Route::get('dashboard', fn () => Inertia::render('dashboard'))
         ->name('dashboard');

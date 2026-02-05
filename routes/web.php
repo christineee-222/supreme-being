@@ -13,16 +13,30 @@ use App\Http\Controllers\PortraitController;
 use App\Http\Controllers\LegislationController;
 use App\Http\Controllers\CommentController;
 
+/*
+|--------------------------------------------------------------------------
+| Public Routes
+|--------------------------------------------------------------------------
+*/
+
 Route::get('/', fn () => Inertia::render('welcome'))->name('home');
+
+/*
+|--------------------------------------------------------------------------
+| Authenticated Routes
+|--------------------------------------------------------------------------
+*/
 
 Route::middleware([
     'auth',
-    ValidateSessionWithWorkOS::class,
+    /**ValidateSessionWithWorkOS::class,*/
 ])->group(function () {
 
-    Route::get('dashboard', function () {
-        return Inertia::render('dashboard');
-    })->name('dashboard');
+    Route::get('dashboard', fn () => Inertia::render('dashboard'))
+        ->name('dashboard');
+    Route::get('/events/{event}', [EventController::class, 'show'])
+    ->name('events.show');
+
 
     /*
     |--------------------------------------------------------------------------
@@ -37,7 +51,7 @@ Route::middleware([
         ->only(['store', 'update', 'destroy']);
 
     Route::resource('events', EventController::class)
-        ->only(['store', 'update', 'destroy']);
+        ->only(['show', 'store', 'update', 'destroy']);
 
     Route::resource('forums', ForumController::class)
         ->only(['store', 'update', 'destroy']);
@@ -72,4 +86,5 @@ Route::middleware([
 
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';
+
 

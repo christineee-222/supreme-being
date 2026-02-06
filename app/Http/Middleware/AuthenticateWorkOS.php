@@ -2,113 +2,74 @@
 
 namespace App\Http\Middleware;
 
-use App\Models\User;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Firebase\JWT\JWT;
-use Firebase\JWT\JWK;
-use Throwable;
+use Firebase\JWT\Key;
+use App\Models\User;
 
 class AuthenticateWorkOS
 {
-    public function handle(Request $request, Closure $next)
+    public function handle(Request $request, Closure $next): Response
     {
-        // --------------------------------------------------
+        $header = $request->header('Authorization');
+
         // 1. Header Extraction
-        // --------------------------------------------------
-        $authHeader = $request->header('Authorization');
-
-        if (! $authHeader || ! str_starts_with($authHeader, 'Bearer ')) {
-            return $this->unauthorized('AUTH_HEADER_MISSING');
+        if (! $header || ! str_starts_with($header, 'Bearer ')) {
+            return response()->json([
+                'error' => 'AUTH_HEADER_MISSING',
+            ], 401);
         }
 
-        $token = substr($authHeader, 7);
+        $token = substr($header, 7);
 
-        // --------------------------------------------------
         // 2. Cryptographic Validation
-        // --------------------------------------------------
         try {
-            $decoded = $this->decodeJwt($token);
-        } catch (Throwable $e) {
-            return $this->unauthorized('INVALID_TOKEN');
-        }
+            $publicKeyPath = storage_path('oauth/workos-public.key');
 
-        // --------------------------------------------------
-        // 3. Claims Verification
-        // --------------------------------------------------
-        if (
-            config('auth.require_verified_email', true) &&
-            empty($decoded->email_verified)
-        ) {
-            return $this->forbidden('EMAIL_NOT_VERIFIED');
-        }
-
-        // Optional: org / tenant enforcement
-        // Example: route parameter {org}
-        if ($request->route('org')) {
-            $orgId = $request->route('org');
-
-            if (
-                empty($decoded->org_id) ||
-                $decoded->org_id !== $orgId
-            ) {
-                return $this->forbidden('ORG_ACCESS_DENIED');
+            if (! file_exists($publicKeyPath)) {
+                return response()->json([
+                    'error' => 'PUBLIC_KEY_NOT_FOUND',
+                ], 500);
             }
+
+            $publicKey = file_get_contents($publicKeyPath);
+
+            $decoded = JWT::decode($token, new Key($publicKey, 'RS256'));
+        } catch (\Throwable $e) {
+            return response()->json([
+                'error' => 'INVALID_TOKEN',
+                'debug' => $e->getMessage(),
+            ], 401);
         }
 
-        // --------------------------------------------------
-        // 4. User Resolution (JIT Provisioning)
-        // --------------------------------------------------
+        // 3. Minimal Claim Validation
+        if (isset($decoded->exp) && $decoded->exp < time()) {
+            return response()->json([
+                'error' => 'TOKEN_EXPIRED',
+            ], 401);
+        }
+
+        if (! isset($decoded->sub)) {
+            return response()->json([
+                'error' => 'SUB_MISSING',
+            ], 401);
+        }
+
+        // 4. User Resolution
         $user = User::firstOrCreate(
             ['workos_id' => $decoded->sub],
             [
                 'email' => $decoded->email ?? null,
-                'name'  => $decoded->name ?? null,
             ]
         );
 
-        // --------------------------------------------------
-        // 5. Inject User into Request Lifecycle
-        // --------------------------------------------------
         $request->setUserResolver(fn () => $user);
 
         return $next($request);
     }
-
-    // ======================================================
-    // Helpers
-    // ======================================================
-
-    protected function decodeJwt(string $token): object
-    {
-        $jwks = cache()->remember(
-            'workos.jwks',
-            now()->addHour(),
-            fn () => json_decode(
-                file_get_contents(config('services.workos.jwks_url')),
-                true
-            )
-        );
-
-        return JWT::decode(
-            $token,
-            JWK::parseKeySet($jwks),
-            ['RS256']
-        );
-    }
-
-    protected function unauthorized(string $code)
-    {
-        return response()->json([
-            'error' => $code,
-        ], Response::HTTP_UNAUTHORIZED);
-    }
-
-    protected function forbidden(string $code)
-    {
-        return response()->json([
-            'error' => $code,
-        ], Response::HTTP_FORBIDDEN);
-    }
 }
+
+
+

@@ -16,9 +16,19 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);
 
-        // 🔐 Route-level auth middleware (API)
+        // 🍪 Cookies
+        $middleware->encryptCookies(except: [
+            'appearance',
+            'sidebar_state',
+        ]);
+
+        // 🛡️ CSRF EXCEPTION (Laravel 12 way)
+        $middleware->validateCsrfTokens(except: [
+            'api/v1/token',
+        ]);
+
+        // 🔐 API Auth
         $middleware->alias([
             'auth.workos' => AuthenticateWorkOS::class,
         ]);
@@ -34,4 +44,6 @@ return Application::configure(basePath: dirname(__DIR__))
         //
     })
     ->create();
+
+
 

@@ -9,8 +9,8 @@ use App\Http\Controllers\Api\AuthTokenController;
 | API Routes
 |--------------------------------------------------------------------------
 |
-| These routes are stateless and protected by WorkOS JWTs.
-| All routes here are prefixed with /api automatically.
+| All routes here are prefixed with /api
+| API routes are stateless by default unless we explicitly add "web"
 |
 */
 
@@ -19,16 +19,20 @@ use App\Http\Controllers\Api\AuthTokenController;
 | Auth / Token
 |--------------------------------------------------------------------------
 |
-| Exchanges a valid WorkOS session for a JWT
+| Exchange a logged-in Laravel *web session* for a signed API JWT.
+| This MUST use the "web" middleware so the session is available.
 |
 */
 
-Route::post('/v1/token', [AuthTokenController::class, 'store']);
+Route::middleware('web')->post('/v1/token', [AuthTokenController::class, 'store']);
 
 /*
 |--------------------------------------------------------------------------
 | Authenticated API Routes
 |--------------------------------------------------------------------------
+|
+| Protected by WorkOS-signed JWTs via auth.workos middleware
+|
 */
 
 Route::middleware('auth.workos')->group(function () {
@@ -44,5 +48,7 @@ Route::middleware('auth.workos')->group(function () {
     });
 
 });
+
+
 
 

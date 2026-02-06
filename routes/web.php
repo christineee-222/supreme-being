@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 use App\Http\Controllers\Auth\WorkOSAuthController;
+use App\Http\Controllers\Api\AuthTokenController;
 use App\Http\Controllers\PollController;
 use App\Http\Controllers\DonationController;
 use App\Http\Controllers\EventController;
@@ -47,6 +48,17 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/events/{event}', [EventController::class, 'show'])
         ->name('events.show');
+
+    /*
+    |--------------------------------------------------------------------------
+    | API Token Exchange (Session → JWT)
+    |--------------------------------------------------------------------------
+    |
+    | This MUST live in the web stack so sessions work.
+    |
+    */
+
+    Route::post('/api/v1/token', [AuthTokenController::class, 'store']);
 
     /*
     |--------------------------------------------------------------------------
@@ -96,6 +108,7 @@ Route::middleware(['auth'])->group(function () {
 
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';
+
 
 
 

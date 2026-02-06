@@ -38,8 +38,14 @@ return [
     'workos' => [
         'client_id'    => env('WORKOS_CLIENT_ID'),
         'secret'       => env('WORKOS_API_KEY'),
+
+        // Used by AuthKitLoginRequest::redirect()
+        'redirect_url' => env('WORKOS_REDIRECT_URI'),
+
+        // Used by JWT / OAuth callback validation
         'redirect_uri' => env('WORKOS_REDIRECT_URI'),
     ],
+
 
 
 ];

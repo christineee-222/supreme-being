@@ -4,7 +4,9 @@ A Laravel 12 application focused on preserving collective knowledge, encouraging
 
 This project prioritizes **immutability, accountability, and role-aware authorization** while still supporting healthy participation, moderation, and long‑term archival.
 
+
 ---
+
 
 ## ✨ Core Principles
 
@@ -14,7 +16,9 @@ This project prioritizes **immutability, accountability, and role-aware authoriz
 - **Test-first authorization** – every rule is expressed in Policies and backed by tests.
 - **Framework-native** – everything is done “the Laravel way.”
 
+
 ---
+
 
 ## 🧱 Tech Stack
 
@@ -32,7 +36,9 @@ This project prioritizes **immutability, accountability, and role-aware authoriz
 
 Frontend is a client‑side rendered Inertia SPA using existing Laravel server‑side patterns.
 
+
 ---
+
 
 ## 🔐 Authentication Modes
 
@@ -78,7 +84,9 @@ This enables:
 - High scalability
 - Clear separation between web and API concerns
 
+
 ---
+
 
 ## 📦 Domain Models
 
@@ -104,7 +112,9 @@ Role helpers exist on the `User` model:
 - `isAdmin()`
 - `isModerator()`
 
+
 ---
+
 
 ## 🧩 Shared Policy Traits
 
@@ -118,7 +128,9 @@ Policies are intentionally DRY’d using reusable traits:
 
 These traits are composed into model‑specific Policies rather than duplicated.
 
+
 ---
+
 
 ## 🗣️ Forums & Comments
 
@@ -140,7 +152,9 @@ These traits are composed into model‑specific Policies rather than duplicated.
 
 All comment authorization is enforced via `ForumPolicy::comment()` and `CommentPolicy`.
 
+
 ---
+
 
 ## 📊 Polls
 
@@ -149,7 +163,9 @@ All comment authorization is enforced via `ForumPolicy::comment()` and `CommentP
 - Immutable after publication
 - No edits or deletion by any role
 
+
 ---
+
 
 ## 💸 Donations
 
@@ -162,7 +178,9 @@ All comment authorization is enforced via `ForumPolicy::comment()` and `CommentP
 
 Transparency is a core design requirement.
 
+
 ---
+
 
 ## 📅 Events
 
@@ -182,7 +200,9 @@ Transparency is a core design requirement.
   4. Strategic use of effort
   5. Harnessing collective willpower
 
+
 ---
+
 
 ## 📜 Legislation
 
@@ -206,7 +226,9 @@ Transparency is a core design requirement.
 
 Legislation maintains a public, auditable history.
 
+
 ---
+
 
 ## 🖼️ Portraits
 
@@ -226,7 +248,9 @@ Legislation maintains a public, auditable history.
 
 Portraits are **not** user profiles.
 
+
 ---
+
 
 ## 🧪 Testing
 
@@ -242,7 +266,9 @@ php artisan test --compact
 php artisan test --compact tests/Feature/ForumCommentAuthorizationTest.php
 ```
 
+
 ---
+
 
 ## 🛠️ Development Conventions
 
@@ -256,7 +282,9 @@ php artisan test --compact tests/Feature/ForumCommentAuthorizationTest.php
 vendor/bin/pint --dirty
 ```
 
+
 ---
+
 
 ## 🤖 Laravel Boost
 
@@ -269,7 +297,9 @@ Laravel Boost is enabled and provides:
 
 When working on Laravel or ecosystem features, documentation is searched via Boost before implementing changes.
 
+
 ---
+
 
 ## 🚀 Status
 
@@ -286,9 +316,49 @@ Active development.
 Architecture and authentication foundation are in place.
 This project intentionally favors correctness and durability over speed.
 
+
 ---
+
+
+## Planned Feature: Decentralized Emergency Messaging
+
+A future release is planned to include a **decentralized, peer-to-peer chat system** designed for emergency and resilience scenarios.
+
+This system is intended to:
+- Provide **end-to-end encrypted messaging**
+- Operate as **open-source** and auditable
+- Use **Bluetooth Low Energy (BLE)** to form a local **mesh network**
+- Function **without internet or cellular service**
+- Enable communication during outages, disasters, or network disruptions
+- Remain **censorship-resistant by design**, with no central server dependency
+
+The goal is to support **local, community-based communication** when traditional infrastructure is unavailable, while prioritizing privacy, transparency, and user safety.
+
+> **Status:** Concept / Research phase  
+> **Note:** This feature is not yet implemented and may evolve significantly as technical, security, and regulatory considerations are evaluated.
+
+
+---
+
+
+## Accessibility & Internationalization
+
+This project is designed with a **global audience** in mind and aims to be
+accessible to users across languages, regions, and abilities.
+
+Planned and ongoing efforts include:
+- Support for **internationalization (i18n)** and community-driven translations
+- Accessibility best practices for **screen readers**, keyboard navigation,
+  and high-contrast interfaces
+- Inclusive design decisions aligned with **WCAG guidelines**
+
+Implementation details and contribution guidelines are documented separately.
+
+
+---
+
 
 ## ❤️ Philosophy
 
-> Juggernaut aims to reduce the expert gap five minutes at a time. If understanding requires legal training, prior context and time to decode jargon then only elites can participate. Will focuses on the ethical consumption/sharing of information, pooling/sharing resources for mutual aid and establishing information archives in perpetuity. Will include chat function which has end-to-end encryption, is open-source and peer-to-peer which operates without internet or cell service using Bluetooth Low Energy (BLE) to create a mesh network for emergency communications, censor-proof. Intended to be accessible for visually impaired. Progressive disclosure reduces intimidation, creates agency, and provides information required for personal understanding. 
+> Juggernaut aims to reduce the expert gap five minutes at a time. If understanding requires legal training, prior context and time to decode jargon then only elites can participate. Will focuses on the ethical consumption/sharing of information, pooling/sharing resources for mutual aid and establishing information archives in perpetuity. Progressive disclosure reduces intimidation, creates agency, and provides information required for personal understanding. 
 

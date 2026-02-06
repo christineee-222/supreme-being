@@ -128,6 +128,15 @@ Transparency is a core design requirement.
 - Immutable after start date/time
 - Comments allowed even after event conclusion
 - Sorted by feature
+- Committee hearings
+- Public comment deadlines
+- Floor votes
+- Provides hub for:
+  1. Protests
+  2. Economic Blackouts
+  3. Marches
+  4. Strategic use of effort
+  5. Harnessing collective willpower
 
 ---
 
@@ -137,8 +146,19 @@ Transparency is a core design requirement.
 - Users may propose legislation
 - Requires admin/mod approval to publish
 - Updates are suggested by users and approved by admin/mod
-- Easy-to-read translations, local and national
+- Transparency & comprehension, local and national
+  1. Plain language summaries
+  2. "What this actually does" explanations
+  3. Clear who benefits / who pays / what changes
+  4. Who proposed it
+  5. What changed from last version
+  6. What stage is it in, can/cannot be influenced, timeline
+  7. Get alerts for votes
 - Sorted by feature
+- Equal visibility
+- Clear sourcing
+- Separation of facts vs interpretation 
+- No jargon
 
 Legislation maintains a public, auditable history.
 
@@ -156,6 +176,9 @@ Legislation maintains a public, auditable history.
 - Deletion only for legal necessity
 - Snapshot of compiled information on entity
 - Sorted by feature
+- Contact Rep info
+- Track votes
+- Follow issues
 
 Portraits are **not** user profiles.
 
@@ -217,5 +240,5 @@ This project intentionally favors correctness and durability over speed.
 
 ## ❤️ Philosophy
 
-> This app is designed so that important conversations cannot simply disappear. Juggernaut focuses on the ethical consumption/sharing of information, pooling/sharing resources for mutual aid and establishing information archives in perpetuity. Will include chat function which has end-to-end encryption, is open-source and peer-to-peer which operates without internet or cell service using Bluetooth Low Energy (BLE) to create a mesh network for emergency communications, censor-proof. Intended to be accessible for visually impaired. 
+> Juggernaut aims to reduce the expert gap five minutes at a time. If understanding requires legal training, prior context and time to decode jargon then only elites can participate. Will focuses on the ethical consumption/sharing of information, pooling/sharing resources for mutual aid and establishing information archives in perpetuity. Will include chat function which has end-to-end encryption, is open-source and peer-to-peer which operates without internet or cell service using Bluetooth Low Energy (BLE) to create a mesh network for emergency communications, censor-proof. Intended to be accessible for visually impaired. Progressive disclosure reduces intimidation, creates agency, and provides information required for personal understanding. 
 

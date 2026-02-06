@@ -1,6 +1,6 @@
 # Juggernaut.love
 
-A Laravel 12 application focused on preserving collective knowledge, encouraging transparent civic engagement, and enabling structured discussion without allowing rage-deletion or historical revisionism.
+A Laravel 12 application focused on preserving collective knowledge, encouraging transparent civic engagement, harnessing collective willpower and enabling structured discussion without allowing rage-deletion or historical revisionism.
 
 This project prioritizes **immutability, accountability, and role-aware authorization** while still supporting healthy participation, moderation, and long‑term archival.
 
@@ -20,13 +20,63 @@ This project prioritizes **immutability, accountability, and role-aware authoriz
 
 - **PHP**: 8.5.2 (stable as of Jan 2026)
 - **Laravel**: 12
+- **React** (TypeScript)
 - **Inertia.js**: v2
 - **Wayfinder**: v0 (typed route helpers)
+- **Auth**: WorkOS (AuthKit)
+- **Database**: MySQL / PostgreSQL
+- **Mobile**: iOS / Android (planned)
 - **PHPUnit**: v11
 - **Laravel Pint**: v1
 - **Laravel Boost (MCP)**: Enabled for IDE tooling and documentation search
 
 Frontend is a client‑side rendered Inertia SPA using existing Laravel server‑side patterns.
+
+---
+
+## 🔐 Authentication Modes
+
+### Web (Session-Based)
+- Used by browser users
+- Powered by WorkOS AuthKit
+- Laravel sessions + cookies
+- Inertia-rendered UI
+
+### API (Stateless JWT)
+- Used by mobile apps and external clients
+- JWTs signed with **RS256**
+- Sent via `Authorization: Bearer <token>`
+- Validated by custom middleware
+
+## 🛣️ Key Routes
+
+### Web
+- `/login` → Start WorkOS login
+- `/auth/workos/callback` → OAuth callback
+- `/dashboard` → Authenticated UI
+
+### API
+- `POST /api/v1/token` → Exchange session for JWT
+- `GET /api/v1/me` → Authenticated user (JWT)
+- `/api/v1/*` → Protected resources
+
+## 🛡️ Security Principles
+
+- Fail fast on invalid auth
+- Never trust headers without cryptographic proof
+- Explicit error codes for client UX
+- No silent auth fallbacks
+- No “JWT-only” users without a local anchor
+
+## 📱 Mobile Strategy
+
+Mobile clients authenticate via WorkOS and use **JWTs exclusively**.  
+No cookies. No sessions. Fully stateless.
+
+This enables:
+- App Store–compliant auth
+- High scalability
+- Clear separation between web and API concerns
 
 ---
 
@@ -41,12 +91,6 @@ Frontend is a client‑side rendered Inertia SPA using existing Laravel server�
 - **Legislation** – Proposed or enacted policy artifacts
 
 All primary models are publishable and role‑governed.
-
----
-
-## 🔐 Authorization Philosophy
-
-Authorization is enforced exclusively through **Laravel Policies**, never inline logic.
 
 ### Roles
 
@@ -227,13 +271,19 @@ When working on Laravel or ecosystem features, documentation is searched via Boo
 
 ---
 
-## 📌 Project Status
+## 🚀 Status
 
-- Core authorization architecture complete
-- Comment system implemented and tested
-- Policy refactor underway across remaining models
-- Model intent and governance rules being formalized
+This README reflects the **intended final architecture**.
 
+Current progress:
+- ✅ WorkOS login flow
+- ✅ Stateless API auth
+- ✅ JWT issuance & validation
+- 🚧 API resource expansion
+- 🚧 Mobile app implementation
+
+Active development.  
+Architecture and authentication foundation are in place.
 This project intentionally favors correctness and durability over speed.
 
 ---

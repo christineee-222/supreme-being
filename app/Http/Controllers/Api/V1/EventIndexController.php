@@ -12,9 +12,19 @@ class EventIndexController extends Controller
 {
     public function __invoke(Request $request): AnonymousResourceCollection
     {
+        $perPage = (int) $request->query('per_page', 20);
+
+        if ($perPage < 1) {
+            $perPage = 20;
+        }
+
+        if ($perPage > 50) {
+            $perPage = 50;
+        }
+
         $events = Event::query()
             ->latest()
-            ->paginate(20);
+            ->paginate($perPage);
 
         return EventResource::collection($events);
     }

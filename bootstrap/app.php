@@ -33,6 +33,10 @@ return Application::configure(basePath: dirname(__DIR__))
             'auth.workos' => AuthenticateWorkOS::class,
         ]);
 
+        $middleware->api(append: [
+            \App\Http\Middleware\AddRequestId::class,
+        ]);
+
         // 🌐 Web / Inertia stack
         $middleware->web(append: [
             HandleAppearance::class,
@@ -44,6 +48,3 @@ return Application::configure(basePath: dirname(__DIR__))
         //
     })
     ->create();
-
-
-

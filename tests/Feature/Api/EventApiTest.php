@@ -210,4 +210,76 @@ class EventApiTest extends TestCase
         $this->postJson("/api/v1/events/{$event->id}/cancel", [], ['Authorization' => 'Bearer '.$token])
             ->assertStatus(403);
     }
+
+    public function test_events_index_respects_per_page_param(): void
+    {
+        $user = User::factory()->create(['workos_id' => 'user_per_page_1']);
+        Event::factory()->count(3)->create();
+
+        $token = $this->mintToken($user);
+
+        $this->getJson('/api/v1/events?per_page=1', ['Authorization' => 'Bearer '.$token])
+            ->assertOk()
+            ->assertJsonCount(1, 'data');
+    }
+
+    public function test_events_index_clamps_per_page_to_max(): void
+    {
+        $user = User::factory()->create(['workos_id' => 'user_per_page_max']);
+        Event::factory()->count(60)->create();
+
+        $token = $this->mintToken($user);
+
+        $this->getJson('/api/v1/events?per_page=500', ['Authorization' => 'Bearer '.$token])
+            ->assertOk()
+            ->assertJsonCount(50, 'data');
+    }
+
+    public function test_events_index_includes_pagination_meta_and_links(): void
+    {
+        $user = User::factory()->create(['workos_id' => 'user_pagination_shape']);
+        Event::factory()->count(3)->create();
+
+        $token = $this->mintToken($user);
+
+        $this->getJson('/api/v1/events', ['Authorization' => 'Bearer '.$token])
+            ->assertOk()
+            ->assertJsonStructure([
+                'data',
+                'links',
+                'meta',
+            ]);
+    }
+
+    public function test_event_show_response_shape_is_stable(): void
+    {
+        $user = User::factory()->create(['workos_id' => 'user_show_shape']);
+        $event = Event::factory()->create();
+
+        $token = $this->mintToken($user);
+
+        $this->getJson("/api/v1/events/{$event->id}", ['Authorization' => 'Bearer '.$token])
+            ->assertOk()
+            ->assertJsonStructure([
+                'data' => [
+                    'id',
+                    'title',
+                    'status',
+                    'created_at',
+                    'updated_at',
+                ],
+            ]);
+    }
+
+    public function test_event_show_includes_rsvp_key_even_when_null(): void
+    {
+        $user = User::factory()->create(['workos_id' => 'user_rsvp_null_shape']);
+        $event = Event::factory()->create();
+
+        $token = $this->mintToken($user);
+
+        $this->getJson("/api/v1/events/{$event->id}", ['Authorization' => 'Bearer '.$token])
+            ->assertOk()
+            ->assertJsonPath('data.rsvp', null);
+    }
 }

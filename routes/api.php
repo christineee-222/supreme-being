@@ -3,6 +3,8 @@
 use App\Http\Controllers\Api\AuthTokenController;
 use App\Http\Controllers\Api\V1\EventIndexController;
 use App\Http\Controllers\Api\V1\EventShowController;
+use App\Http\Controllers\Api\V1\EventStoreController;
+use App\Http\Controllers\Api\V1\EventUpdateController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -42,6 +44,10 @@ Route::middleware('auth.workos')->group(function () {
     Route::get('/v1/events', EventIndexController::class);
 
     Route::get('/v1/events/{event}', EventShowController::class);
+
+    Route::post('/v1/events', EventStoreController::class);
+
+    Route::patch('/v1/events/{event}', EventUpdateController::class);
 
     Route::get('/v1/me', function (Request $request) {
         return response()->json([

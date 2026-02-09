@@ -36,6 +36,11 @@ class EventApiTest extends TestCase
         File::put(storage_path('oauth/workos-public.key'), $publicKey);
     }
 
+    private function mintToken(User $user): string
+    {
+        return (string) $this->actingAs($user)->postJson('/api/v1/token')->json('token');
+    }
+
     public function test_events_index_requires_auth(): void
     {
         $this->getJson('/api/v1/events')
@@ -47,7 +52,7 @@ class EventApiTest extends TestCase
         $user = User::factory()->create(['workos_id' => 'user_test_1']);
         Event::factory()->count(3)->create();
 
-        $token = $this->actingAs($user)->postJson('/api/v1/token')->json('token');
+        $token = $this->mintToken($user);
 
         $this->getJson('/api/v1/events', ['Authorization' => 'Bearer '.$token])
             ->assertOk()
@@ -68,10 +73,86 @@ class EventApiTest extends TestCase
             'user_id' => $user->id,
         ]);
 
-        $token = $this->actingAs($user)->postJson('/api/v1/token')->json('token');
+        $token = $this->mintToken($user);
 
         $this->getJson("/api/v1/events/{$event->id}", ['Authorization' => 'Bearer '.$token])
             ->assertOk()
             ->assertJsonPath('data.rsvp.id', $rsvp->id);
+    }
+
+    public function test_event_create_requires_auth(): void
+    {
+        $this->postJson('/api/v1/events', [
+            'title' => 'Town Hall',
+        ])->assertStatus(401);
+    }
+
+    public function test_authenticated_user_can_create_event(): void
+    {
+        $user = User::factory()->create(['workos_id' => 'user_test_create']);
+        $token = $this->mintToken($user);
+
+        $response = $this->postJson('/api/v1/events', [
+            'title' => 'Town Hall',
+            'description' => 'Community Q&A',
+            'starts_at' => now()->addDay()->toISOString(),
+            'ends_at' => now()->addDays(2)->toISOString(),
+        ], ['Authorization' => 'Bearer '.$token]);
+
+        $response->assertSuccessful()
+            ->assertJsonPath('data.title', 'Town Hall');
+    }
+
+    public function test_non_owner_cannot_update_event(): void
+    {
+        $owner = User::factory()->create(['workos_id' => 'user_owner']);
+        $other = User::factory()->create(['workos_id' => 'user_other']);
+
+        $event = Event::factory()->create([
+            'user_id' => $owner->id,
+            'starts_at' => now()->addDay(),
+        ]);
+
+        $token = $this->mintToken($other);
+
+        $this->patchJson("/api/v1/events/{$event->id}", [
+            'title' => 'Edited Title',
+        ], ['Authorization' => 'Bearer '.$token])
+            ->assertStatus(403);
+    }
+
+    public function test_owner_can_update_event_before_it_starts(): void
+    {
+        $owner = User::factory()->create(['workos_id' => 'user_owner_future']);
+
+        $event = Event::factory()->create([
+            'user_id' => $owner->id,
+            'starts_at' => now()->addDay(),
+        ]);
+
+        $token = $this->mintToken($owner);
+
+        $this->patchJson("/api/v1/events/{$event->id}", [
+            'title' => 'Updated Title',
+        ], ['Authorization' => 'Bearer '.$token])
+            ->assertOk()
+            ->assertJsonPath('data.title', 'Updated Title');
+    }
+
+    public function test_owner_cannot_update_event_after_it_starts(): void
+    {
+        $owner = User::factory()->create(['workos_id' => 'user_owner_past']);
+
+        $event = Event::factory()->create([
+            'user_id' => $owner->id,
+            'starts_at' => now()->subMinute(),
+        ]);
+
+        $token = $this->mintToken($owner);
+
+        $this->patchJson("/api/v1/events/{$event->id}", [
+            'title' => 'Should Not Update',
+        ], ['Authorization' => 'Bearer '.$token])
+            ->assertStatus(403);
     }
 }

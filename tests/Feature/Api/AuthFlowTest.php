@@ -3,6 +3,8 @@
 namespace Tests\Feature\Api;
 
 use App\Models\User;
+use Firebase\JWT\JWT;
+use Firebase\JWT\Key;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\File;
 use Tests\TestCase;
@@ -23,6 +25,7 @@ class AuthFlowTest extends TestCase
         ];
 
         $res = openssl_pkey_new($config);
+
         $privateKey = '';
         openssl_pkey_export($res, $privateKey);
 
@@ -74,5 +77,37 @@ class AuthFlowTest extends TestCase
                 'data' => ['id', 'email', 'workos_id'],
             ])
             ->assertJsonPath('data.workos_id', 'user_test_123');
+    }
+
+    public function test_can_refresh_token_via_web_session(): void
+    {
+        $user = User::factory()->create([
+            'workos_id' => 'user_refresh_123',
+        ]);
+
+        $response = $this->actingAs($user)
+            ->postJson('/api/v1/token/refresh');
+
+        $response->assertOk()
+            ->assertJsonStructure(['token']);
+    }
+
+    public function test_token_respects_configured_ttl(): void
+    {
+        config(['services.workos.jwt_ttl_seconds' => 5]);
+
+        $user = User::factory()->create([
+            'workos_id' => 'user_ttl_test',
+        ]);
+
+        $token = $this->actingAs($user)
+            ->postJson('/api/v1/token')
+            ->json('token');
+
+        $publicKey = file_get_contents(storage_path('oauth/workos-public.key'));
+
+        $decoded = JWT::decode($token, new Key($publicKey, 'RS256'));
+
+        $this->assertEquals(5, $decoded->exp - $decoded->iat);
     }
 }

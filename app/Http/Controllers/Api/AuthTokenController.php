@@ -12,6 +12,16 @@ class AuthTokenController extends Controller
 {
     public function store(Request $request): JsonResponse
     {
+        return $this->mint($request);
+    }
+
+    public function refresh(Request $request): JsonResponse
+    {
+        return $this->mint($request);
+    }
+
+    private function mint(Request $request): JsonResponse
+    {
         $user = $request->user();
 
         if (! $user) {

@@ -23,6 +23,7 @@ class EventResource extends JsonResource
             'starts_at' => $this->starts_at?->toISOString(),
             'ends_at' => $this->ends_at?->toISOString(),
             'status' => $this->status,
+            'cancelled_at' => $this->cancelled_at?->toISOString(),
             'user_id' => $this->user_id,
             'essence_numen_id' => $this->essence_numen_id,
             'created_at' => $this->created_at?->toISOString(),

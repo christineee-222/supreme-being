@@ -31,6 +31,8 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware('web')->post('/v1/token', [AuthTokenController::class, 'store']);
 
+Route::middleware('web')->post('/v1/token/refresh', [AuthTokenController::class, 'refresh']);
+
 /*
 |--------------------------------------------------------------------------
 | Authenticated API Routes

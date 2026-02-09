@@ -13,8 +13,10 @@ class EventCancelController extends Controller
         $this->authorize('cancel', $event);
 
         $event->status = 'cancelled';
+        $event->cancelled_at = now();
         $event->save();
 
         return new EventResource($event->fresh());
+
     }
 }

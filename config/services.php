@@ -36,8 +36,10 @@ return [
     ],
 
     'workos' => [
-        'client_id'    => env('WORKOS_CLIENT_ID'),
-        'secret'       => env('WORKOS_API_KEY'),
+        'client_id' => env('WORKOS_CLIENT_ID'),
+        'secret' => env('WORKOS_API_KEY'),
+
+        'jwt_ttl_seconds' => (int) env('WORKOS_JWT_TTL_SECONDS', 3600),
 
         // Used by AuthKitLoginRequest::redirect()
         'redirect_url' => env('WORKOS_REDIRECT_URI'),
@@ -45,7 +47,5 @@ return [
         // Used by JWT / OAuth callback validation
         'redirect_uri' => env('WORKOS_REDIRECT_URI'),
     ],
-
-
 
 ];

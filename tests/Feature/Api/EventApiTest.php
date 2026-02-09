@@ -187,7 +187,12 @@ class EventApiTest extends TestCase
 
         $this->postJson("/api/v1/events/{$event->id}/cancel", [], ['Authorization' => 'Bearer '.$token])
             ->assertOk()
-            ->assertJsonPath('data.status', 'cancelled');
+            ->assertJsonPath('data.status', 'cancelled')
+            ->assertJsonStructure([
+                'data' => ['cancelled_at'],
+            ]);
+
+        $this->assertNotNull($event->fresh()->cancelled_at);
     }
 
     public function test_owner_cannot_cancel_event_after_it_starts(): void

@@ -155,4 +155,54 @@ class EventApiTest extends TestCase
         ], ['Authorization' => 'Bearer '.$token])
             ->assertStatus(403);
     }
+
+    public function test_non_owner_cannot_cancel_event(): void
+    {
+        $owner = User::factory()->create(['workos_id' => 'user_cancel_owner']);
+        $other = User::factory()->create(['workos_id' => 'user_cancel_other']);
+
+        $event = Event::factory()->create([
+            'user_id' => $owner->id,
+            'starts_at' => now()->addDay(),
+            'status' => 'scheduled',
+        ]);
+
+        $token = $this->mintToken($other);
+
+        $this->postJson("/api/v1/events/{$event->id}/cancel", [], ['Authorization' => 'Bearer '.$token])
+            ->assertStatus(403);
+    }
+
+    public function test_owner_can_cancel_event_before_it_starts(): void
+    {
+        $owner = User::factory()->create(['workos_id' => 'user_cancel_owner_future']);
+
+        $event = Event::factory()->create([
+            'user_id' => $owner->id,
+            'starts_at' => now()->addDay(),
+            'status' => 'scheduled',
+        ]);
+
+        $token = $this->mintToken($owner);
+
+        $this->postJson("/api/v1/events/{$event->id}/cancel", [], ['Authorization' => 'Bearer '.$token])
+            ->assertOk()
+            ->assertJsonPath('data.status', 'cancelled');
+    }
+
+    public function test_owner_cannot_cancel_event_after_it_starts(): void
+    {
+        $owner = User::factory()->create(['workos_id' => 'user_cancel_owner_past']);
+
+        $event = Event::factory()->create([
+            'user_id' => $owner->id,
+            'starts_at' => now()->subMinute(),
+            'status' => 'scheduled',
+        ]);
+
+        $token = $this->mintToken($owner);
+
+        $this->postJson("/api/v1/events/{$event->id}/cancel", [], ['Authorization' => 'Bearer '.$token])
+            ->assertStatus(403);
+    }
 }

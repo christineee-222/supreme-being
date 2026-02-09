@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AuthTokenController;
+use App\Http\Controllers\Api\V1\EventCancelController;
 use App\Http\Controllers\Api\V1\EventIndexController;
 use App\Http\Controllers\Api\V1\EventShowController;
 use App\Http\Controllers\Api\V1\EventStoreController;
@@ -48,6 +49,8 @@ Route::middleware('auth.workos')->group(function () {
     Route::post('/v1/events', EventStoreController::class);
 
     Route::patch('/v1/events/{event}', EventUpdateController::class);
+
+    Route::post('/v1/events/{event}/cancel', EventCancelController::class);
 
     Route::get('/v1/me', function (Request $request) {
         return response()->json([

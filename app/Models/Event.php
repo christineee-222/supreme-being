@@ -2,13 +2,12 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Support\Carbon;
-use App\Models\User;
-use App\Models\EssenceNumen;
-use App\Models\EventRsvp;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Carbon;
 
 class Event extends Model
 {
@@ -26,20 +25,34 @@ class Event extends Model
 
     protected $casts = [
         'starts_at' => 'datetime',
-        'ends_at'   => 'datetime',
+        'ends_at' => 'datetime',
     ];
 
     /**
      * Relationships
      */
-    public function user()
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    public function essenceNumen()
+    public function essenceNumen(): BelongsTo
     {
         return $this->belongsTo(EssenceNumen::class, 'essence_numen_id');
+    }
+
+    public function rsvps(): HasMany
+    {
+        return $this->hasMany(EventRsvp::class);
+    }
+
+    /**
+     * Used by API to eager-load the RSVP
+     * for the currently authenticated user.
+     */
+    public function rsvpForViewer(): HasOne
+    {
+        return $this->hasOne(EventRsvp::class);
     }
 
     /**
@@ -61,23 +74,16 @@ class Event extends Model
         return $this->status === 'cancelled';
     }
 
-    public function rsvps(): HasMany
-    {
-        return $this->hasMany(EventRsvp::class);
-    }
-
     /**
      * Model boot logic
      */
-    protected static function booted()
+    protected static function booted(): void
     {
         static::creating(function ($event) {
-            // Default status
             if (! $event->status) {
                 $event->status = 'scheduled';
             }
 
-            // Auto-create EssenceNumen
             if (! $event->essence_numen_id) {
                 $essence = EssenceNumen::create([
                     'type' => 'event',
@@ -88,6 +94,3 @@ class Event extends Model
         });
     }
 }
-
-
-

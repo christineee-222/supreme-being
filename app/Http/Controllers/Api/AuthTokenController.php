@@ -3,40 +3,57 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use Firebase\JWT\JWT;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Throwable;
 
 class AuthTokenController extends Controller
 {
-    public function store(Request $request)
+    public function store(Request $request): JsonResponse
     {
-        // 1. Must be logged in via web session
         $user = $request->user();
 
         if (! $user) {
-            return response()->json(['message' => 'Unauthenticated'], 401);
+            return response()->json([
+                'error' => 'UNAUTHENTICATED_SESSION',
+            ], 401);
         }
 
-        // 2. Build JWT payload
+        $privateKeyPath = storage_path('oauth/workos-private.key');
+
+        if (! file_exists($privateKeyPath)) {
+            return response()->json([
+                'error' => 'PRIVATE_KEY_NOT_FOUND',
+            ], 500);
+        }
+
+        $ttlSeconds = (int) (config('services.workos.jwt_ttl_seconds') ?? 3600);
+
         $payload = [
             'iss' => config('app.url'),
             'sub' => $user->workos_id,
             'aud' => config('services.workos.client_id'),
             'iat' => time(),
-            'exp' => time() + (60 * 60), // 1 hour
+            'exp' => time() + $ttlSeconds,
+            'email' => $user->email,
         ];
 
-        // 3. Sign with YOUR private key
-        $privateKey = file_get_contents(storage_path('oauth/workos-private.key'));
+        try {
+            $privateKey = file_get_contents($privateKeyPath);
+            $jwt = JWT::encode($payload, $privateKey, 'RS256');
+        } catch (Throwable $e) {
+            $body = ['error' => 'TOKEN_MINT_FAILED'];
 
-        $jwt = JWT::encode($payload, $privateKey, 'RS256');
+            if (config('app.debug')) {
+                $body['debug'] = $e->getMessage();
+            }
+
+            return response()->json($body, 500);
+        }
 
         return response()->json([
             'token' => $jwt,
         ]);
     }
 }
-
-
-
-

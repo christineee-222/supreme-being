@@ -2,12 +2,14 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\User;
 use Closure;
-use Illuminate\Http\Request;
-use Symfony\Component\HttpFoundation\Response;
+use Firebase\JWT\ExpiredException;
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
-use App\Models\User;
+use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Throwable;
 
 class AuthenticateWorkOS
 {
@@ -15,61 +17,58 @@ class AuthenticateWorkOS
     {
         $header = $request->header('Authorization');
 
-        // 1. Header Extraction
         if (! $header || ! str_starts_with($header, 'Bearer ')) {
             return response()->json([
-                'error' => 'AUTH_HEADER_MISSING',
+                'error' => 'MISSING_TOKEN',
             ], 401);
         }
 
-        $token = substr($header, 7);
+        $token = trim(substr($header, 7));
 
-        // 2. Cryptographic Validation
+        if ($token === '') {
+            return response()->json([
+                'error' => 'MISSING_TOKEN',
+            ], 401);
+        }
+
+        $publicKeyPath = storage_path('oauth/workos-public.key');
+
+        if (! file_exists($publicKeyPath)) {
+            return response()->json([
+                'error' => 'PUBLIC_KEY_NOT_FOUND',
+            ], 500);
+        }
+
         try {
-            $publicKeyPath = storage_path('oauth/workos-public.key');
+            $publicKey = file_get_contents($publicKeyPath);
+            $decoded = JWT::decode($token, new Key($publicKey, 'RS256'));
+        } catch (ExpiredException) {
+            return response()->json([
+                'error' => 'EXPIRED_TOKEN',
+            ], 401);
+        } catch (Throwable $e) {
+            $payload = ['error' => 'INVALID_TOKEN'];
 
-            if (! file_exists($publicKeyPath)) {
-                return response()->json([
-                    'error' => 'PUBLIC_KEY_NOT_FOUND',
-                ], 500);
+            if (config('app.debug')) {
+                $payload['debug'] = $e->getMessage();
             }
 
-            $publicKey = file_get_contents($publicKeyPath);
-
-            $decoded = JWT::decode($token, new Key($publicKey, 'RS256'));
-        } catch (\Throwable $e) {
-            return response()->json([
-                'error' => 'INVALID_TOKEN',
-                'debug' => $e->getMessage(),
-            ], 401);
+            return response()->json($payload, 401);
         }
 
-        // 3. Minimal Claim Validation
-        if (isset($decoded->exp) && $decoded->exp < time()) {
-            return response()->json([
-                'error' => 'TOKEN_EXPIRED',
-            ], 401);
-        }
-
-        if (! isset($decoded->sub)) {
+        if (! isset($decoded->sub) || ! is_string($decoded->sub) || $decoded->sub === '') {
             return response()->json([
                 'error' => 'SUB_MISSING',
             ], 401);
         }
 
-        // 4. User Resolution
         $user = User::firstOrCreate(
             ['workos_id' => $decoded->sub],
-            [
-                'email' => $decoded->email ?? null,
-            ]
+            ['email' => isset($decoded->email) && is_string($decoded->email) ? $decoded->email : null]
         );
 
-        $request->setUserResolver(fn () => $user);
+        $request->setUserResolver(fn (): User => $user);
 
         return $next($request);
     }
 }
-
-
-

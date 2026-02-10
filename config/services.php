@@ -46,6 +46,10 @@ return [
 
         // Used by JWT / OAuth callback validation
         'redirect_uri' => env('WORKOS_REDIRECT_URI'),
+
+        'environment' => env('WORKOS_ENV', 'sandbox'),
+        'sso_enabled' => env('WORKOS_SSO_ENABLED', false),
+
     ],
 
 ];

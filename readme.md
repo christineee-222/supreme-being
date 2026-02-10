@@ -1,4 +1,9 @@
 # Civic Engagement App (Working Title)
+![Laravel](https://img.shields.io/badge/Laravel-12-red)
+![PHP](https://img.shields.io/badge/PHP-8.5%2B-blue)
+![Docker](https://img.shields.io/badge/Docker-Sail-informational)
+![License](https://img.shields.io/badge/License-Proprietary-lightgrey)
+
 
 A modern civic engagement platform built with **Laravel 12**, designed to support both:
 

@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Auth;
 
 class Event extends Model
 {
@@ -53,7 +54,7 @@ class Event extends Model
      */
     public function rsvpForViewer(): HasOne
     {
-        return $this->hasOne(EventRsvp::class);
+        return $this->hasOne(EventRsvp::class)->where('user_id', Auth::id());
     }
 
     /**

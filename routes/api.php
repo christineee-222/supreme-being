@@ -6,7 +6,9 @@ use App\Http\Controllers\Api\V1\EventIndexController;
 use App\Http\Controllers\Api\V1\EventShowController;
 use App\Http\Controllers\Api\V1\EventStoreController;
 use App\Http\Controllers\Api\V1\EventUpdateController;
-use Illuminate\Http\Request;
+use App\Http\Controllers\Api\V1\EventRsvpStoreController;
+use App\Http\Controllers\Api\V1\EventRsvpDestroyController;
+use App\Http\Controllers\Api\V1\MeController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -24,13 +26,12 @@ use Illuminate\Support\Facades\Route;
 | Auth / Token
 |--------------------------------------------------------------------------
 |
-| Exchange a logged-in Laravel *web session* for a signed API JWT.
-| This MUST use the "web" middleware so the session is available.
+| Exchange a logged-in Laravel web session for a signed API JWT.
+| Must use "web" middleware so session is available.
 |
 */
 
 Route::middleware('web')->post('/v1/token', [AuthTokenController::class, 'store']);
-
 Route::middleware('web')->post('/v1/token/refresh', [AuthTokenController::class, 'refresh']);
 
 /*
@@ -38,30 +39,39 @@ Route::middleware('web')->post('/v1/token/refresh', [AuthTokenController::class,
 | Authenticated API Routes
 |--------------------------------------------------------------------------
 |
-| Protected by WorkOS-signed JWTs via auth.workos middleware
+| Protected by WorkOS JWT via auth.workos middleware
 |
 */
 
 Route::middleware('auth.workos')->group(function () {
 
+    /*
+    |--------------------------------------------------------------------------
+    | Identity
+    |--------------------------------------------------------------------------
+    */
+
+    Route::get('/v1/me', MeController::class);
+
+    /*
+    |--------------------------------------------------------------------------
+    | Events
+    |--------------------------------------------------------------------------
+    */
+
     Route::get('/v1/events', EventIndexController::class);
-
     Route::get('/v1/events/{event}', EventShowController::class);
-
     Route::post('/v1/events', EventStoreController::class);
-
     Route::patch('/v1/events/{event}', EventUpdateController::class);
-
     Route::post('/v1/events/{event}/cancel', EventCancelController::class);
 
-    Route::get('/v1/me', function (Request $request) {
-        return response()->json([
-            'data' => [
-                'id' => $request->user()->id,
-                'email' => $request->user()->email,
-                'workos_id' => $request->user()->workos_id,
-            ],
-        ]);
-    });
+    /*
+    |--------------------------------------------------------------------------
+    | RSVP (mobile engagement loop)
+    |--------------------------------------------------------------------------
+    */
 
+    Route::post('/v1/events/{event}/rsvp', EventRsvpStoreController::class);
+    Route::delete('/v1/events/{event}/rsvp', EventRsvpDestroyController::class);
 });
+

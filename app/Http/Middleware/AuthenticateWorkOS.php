@@ -11,6 +11,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\Response;
 use Throwable;
+use Illuminate\Support\Facades\Auth;
+
 
 class AuthenticateWorkOS
 {
@@ -95,8 +97,11 @@ class AuthenticateWorkOS
             ['email' => isset($decoded->email) && is_string($decoded->email) ? $decoded->email : null]
         );
 
+        Auth::setUser($user);
+
         $request->setUserResolver(fn (): User => $user);
 
         return $next($request);
+
     }
 }

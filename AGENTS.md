@@ -179,6 +179,17 @@ protected function isAccessible(User $user, ?string $path = null): bool
 - Always create Form Request classes for validation rather than inline validation in controllers. Include both validation rules and custom error messages.
 - Check sibling Form Requests to see if the application uses array or string based validation rules.
 
+### RSVP API Validation Convention
+
+- RSVP creation/update must use a dedicated FormRequest (`StoreEventRsvpRequest`).
+- Allowed RSVP status values:
+  - `going`
+  - `interested`
+  - `not_going`
+- API routes are already protected by `auth.workos`; FormRequest `authorize()` should normally return `true`.
+- Controllers should remain thin; validation belongs in FormRequests.
+
+
 ## Authentication & Authorization
 
 - Use Laravel's built-in authentication and authorization features (gates, policies, Sanctum, etc.).

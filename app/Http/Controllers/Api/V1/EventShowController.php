@@ -7,16 +7,14 @@ use App\Http\Resources\EventResource;
 use App\Models\Event;
 use Illuminate\Http\Request;
 
-class EventShowController extends Controller
+final class EventShowController extends Controller
 {
     public function __invoke(Request $request, Event $event): EventResource
     {
-        $userId = $request->user()->id;
+        $event->load('rsvpForViewer');
 
-        $event->load([
-            'rsvpForViewer' => fn ($q) => $q->where('user_id', $userId),
-        ]);
-
-        return new EventResource($event);
+        return EventResource::make($event);
     }
 }
+
+

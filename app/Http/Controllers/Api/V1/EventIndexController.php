@@ -8,7 +8,7 @@ use App\Models\Event;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
-class EventIndexController extends Controller
+final class EventIndexController extends Controller
 {
     public function __invoke(Request $request): AnonymousResourceCollection
     {
@@ -23,9 +23,11 @@ class EventIndexController extends Controller
         }
 
         $events = Event::query()
+            ->with('rsvpForViewer')
             ->latest()
             ->paginate($perPage);
 
         return EventResource::collection($events);
     }
 }
+

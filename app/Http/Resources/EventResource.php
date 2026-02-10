@@ -37,3 +37,4 @@ class EventResource extends JsonResource
         ];
     }
 }
+

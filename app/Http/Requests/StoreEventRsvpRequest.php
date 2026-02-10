@@ -1,14 +1,14 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\Api\V1;
 
 use Illuminate\Foundation\Http\FormRequest;
-use App\Models\EventRsvp;
 
 class StoreEventRsvpRequest extends FormRequest
 {
     public function authorize(): bool
     {
+        // Auth already handled by auth.workos middleware
         return true;
     }
 
@@ -22,4 +22,17 @@ class StoreEventRsvpRequest extends FormRequest
             ],
         ];
     }
+
+    /**
+     * Normalize input before validation.
+     */
+    protected function prepareForValidation(): void
+    {
+        if ($this->has('status')) {
+            $this->merge([
+                'status' => strtolower(trim((string) $this->input('status'))),
+            ]);
+        }
+    }
 }
+

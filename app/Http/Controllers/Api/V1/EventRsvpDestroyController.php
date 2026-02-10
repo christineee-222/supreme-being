@@ -14,10 +14,17 @@ final class EventRsvpDestroyController extends Controller
     {
         $user = $request->user();
 
-        EventRsvp::query()
+        $rsvp = EventRsvp::query()
             ->where('user_id', $user->id)
             ->where('event_id', $event->id)
-            ->delete();
+            ->first();
+
+        if ($rsvp) {
+            // If you have an EventRsvpPolicy delete(User, EventRsvp), uncomment:
+            // $this->authorize('delete', $rsvp);
+
+            $rsvp->delete();
+        }
 
         return response()->json([
             'meta' => [
@@ -26,4 +33,5 @@ final class EventRsvpDestroyController extends Controller
         ]);
     }
 }
+
 

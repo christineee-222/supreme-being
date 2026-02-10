@@ -20,10 +20,17 @@ class EventRsvpResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'status' => $this->status,
+
+            'status' => (string) $this->status,
+
             'user_id' => $this->user_id,
             'event_id' => $this->event_id,
+
+            // Helpful for mobile sync/debugging (safe to add; non-breaking)
+            'created_at' => $this->created_at?->toIso8601String(),
+            'updated_at' => $this->updated_at?->toIso8601String(),
         ];
     }
 }
+
 

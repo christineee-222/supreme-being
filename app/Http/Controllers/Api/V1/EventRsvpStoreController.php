@@ -3,15 +3,34 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use App\Http\Requests\Api\V1\StoreEventRsvpRequest;
+use App\Http\Resources\EventRsvpResource;
+use App\Models\Event;
+use App\Models\EventRsvp;
 
-class EventRsvpStoreController extends Controller
+final class EventRsvpStoreController extends Controller
 {
-    /**
-     * Handle the incoming request.
-     */
-    public function __invoke(Request $request)
+    public function __invoke(StoreEventRsvpRequest $request, Event $event): EventRsvpResource
     {
-        //
+        $user = $request->user();
+
+        // Optional policy gate (recommended once you have it)
+        // $this->authorize('create', [EventRsvp::class, $event]);
+
+        $status = $request->string('status')->toString();
+
+        $rsvp = EventRsvp::query()->updateOrCreate(
+            [
+                'user_id' => $user->id,
+                'event_id' => $event->id,
+            ],
+            [
+                'status' => $status,
+            ]
+        );
+
+        return new EventRsvpResource($rsvp);
     }
 }
+
+

@@ -1,6 +1,8 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 
 use App\Http\Controllers\Auth\WorkOSAuthController;
@@ -37,11 +39,43 @@ Route::get('/auth/workos/callback', [WorkOSAuthController::class, 'callback']);
 
 /*
 |--------------------------------------------------------------------------
+| Mobile Auth Return Bridge (PUBLIC)
+|--------------------------------------------------------------------------
+|
+| This handles the mobile login redirect safely without relying on
+| shared browser cookies. It generates a one-time auth code that
+| the iOS app exchanges for a JWT.
+|
+*/
+
+Route::get('/mobile/complete', function () {
+
+    // If not logged in, start login and remember intended destination
+    if (! auth()->check()) {
+        session(['url.intended' => url('/mobile/complete')]);
+        return redirect()->route('login');
+    }
+
+    // Create a short-lived, single-use auth code
+    $code = Str::random(48);
+
+    Cache::put(
+        "mobile_auth_code:{$code}",
+        auth()->id(),
+        now()->addMinutes(2)
+    );
+
+    // Redirect back into the iOS app via custom scheme
+    return redirect()->away("assemblyrequired://auth-complete?code={$code}");
+});
+
+/*
+|--------------------------------------------------------------------------
 | Authenticated Routes
 |--------------------------------------------------------------------------
 */
 
-    Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth'])->group(function () {
 
     Route::get('/dashboard', fn () => Inertia::render('dashboard'))
         ->name('dashboard');
@@ -54,7 +88,7 @@ Route::get('/auth/workos/callback', [WorkOSAuthController::class, 'callback']);
     | API Token Exchange (Session → JWT)
     |--------------------------------------------------------------------------
     |
-    | This MUST live in the web stack so sessions work.
+    | Still used by web app, but mobile now uses mobile auth code.
     |
     */
 
@@ -108,6 +142,8 @@ Route::get('/auth/workos/callback', [WorkOSAuthController::class, 'callback']);
 
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';
+
+
 
 
 

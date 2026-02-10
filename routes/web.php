@@ -41,7 +41,7 @@ Route::get('/auth/workos/callback', [WorkOSAuthController::class, 'callback']);
 |--------------------------------------------------------------------------
 */
 
-Route::middleware(['auth'])->group(function () {
+    Route::middleware(['auth'])->group(function () {
 
     Route::get('/dashboard', fn () => Inertia::render('dashboard'))
         ->name('dashboard');

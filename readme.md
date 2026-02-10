@@ -1,364 +1,377 @@
-# Juggernaut.love
+# Civic Engagement App (Working Title)
 
-A Laravel 12 application focused on preserving collective knowledge, encouraging transparent civic engagement, harnessing collective willpower and enabling structured discussion without allowing rage-deletion or historical revisionism.
+A modern civic engagement platform built with **Laravel 12**, designed to support both:
 
-This project prioritizes **immutability, accountability, and role-aware authorization** while still supporting healthy participation, moderation, and long‑term archival.
+* a **session-based web application** (Inertia + Laravel)
+* a **stateless, high-volume API** for native mobile clients (iOS / Android)
 
-
----
-
-
-## ✨ Core Principles
-
-- **Preservation over ephemerality** – published content is intentionally difficult (or impossible) to delete or rewrite.
-- **Transparency by default** – public artifacts like polls, donations, and legislation remain viewable forever.
-- **Role-aware governance** – admins and moderators enable safety and verification, not unilateral control.
-- **Test-first authorization** – every rule is expressed in Policies and backed by tests.
-- **Framework-native** – everything is done “the Laravel way.”
-
+Authentication and identity are powered by **WorkOS**, enabling secure passwordless login, social identity providers, and enterprise SSO while maintaining a strong local relational data model.
 
 ---
 
+## 🚀 Local Development (Docker / Laravel Sail)
 
-## 🧱 Tech Stack
+This project uses **Laravel Sail (Docker)** to provide a consistent development environment.
 
-- **PHP**: 8.5.2 (stable as of Jan 2026)
-- **Laravel**: 12
-- **React** (TypeScript)
-- **Inertia.js**: v2
-- **Wayfinder**: v0 (typed route helpers)
-- **Auth**: WorkOS (AuthKit)
-- **Database**: MySQL / PostgreSQL
-- **Mobile**: iOS / Android (planned)
-- **PHPUnit**: v11
-- **Laravel Pint**: v1
-- **Laravel Boost (MCP)**: Enabled for IDE tooling and documentation search
+This means contributors do **not** need to manually install:
 
-Frontend is a client‑side rendered Inertia SPA using existing Laravel server‑side patterns.
+* PHP
+* MySQL
+* Redis
+* Node dependencies
+* System-level extensions
 
+Everything runs in containers.
+
+### First-time setup
+
+```bash
+git clone <repo-url>
+cd social-app
+
+composer install
+cp .env.example .env
+
+./vendor/bin/sail up -d
+./vendor/bin/sail artisan migrate
+
+./vendor/bin/sail npm install
+./vendor/bin/sail npm run dev
+```
+
+Then open:
+
+```
+http://localhost
+```
+
+### Daily workflow
+
+Start containers:
+
+```bash
+./vendor/bin/sail up -d
+```
+
+Stop containers:
+
+```bash
+./vendor/bin/sail down
+```
+
+⚠️ Avoid:
+
+```bash
+./vendor/bin/sail down -v
+```
+
+That deletes the local database volume.
 
 ---
 
+## ✨ Key Features
 
-## 🔐 Authentication Modes
+### Hybrid architecture
 
-### Web (Session-Based)
-- Used by browser users
-- Powered by WorkOS AuthKit
-- Laravel sessions + cookies
-- Inertia-rendered UI
+* Web app: session-based Laravel authentication
+* API: stateless JWT authentication for mobile and external clients
 
-### API (Stateless JWT)
-- Used by mobile apps and external clients
-- JWTs signed with **RS256**
-- Sent via `Authorization: Bearer <token>`
-- Validated by custom middleware
+### WorkOS-powered identity
 
-## 🛣️ Key Routes
+Supports:
 
-### Web
-- `/login` → Start WorkOS login
-- `/auth/workos/callback` → OAuth callback
-- `/dashboard` → Authenticated UI
+* Passwordless Magic Links
+* Sign in with Apple
+* Sign in with Google
+* Enterprise SSO (OIDC / SAML-ready)
 
-### API
-- `POST /api/v1/token` → Exchange session for JWT
-- `GET /api/v1/me` → Authenticated user (JWT)
-- `/api/v1/*` → Protected resources
+### Mobile-first API design
+
+* Stateless authentication
+* No cookies or CSRF
+* Horizontally scalable
+* Designed for native mobile clients
+
+### Strong relational model
+
+Core domain entities include:
+
+* Users
+* Events & RSVPs
+* Forums & comments
+* Polls
+* Donations
+* Civic data structures
+
+### Security-focused architecture
+
+* Explicit authentication boundaries
+* Signed RS256 JWTs
+* Minimal token claims
+* Fail-fast error handling
+
+---
+
+## 🏗️ Architecture Overview
+
+The system deliberately separates:
+
+1. Identity provider
+2. Local relational data model
+3. API authorization layer
+
+This improves scalability, security, and maintainability.
+
+---
+
+## 🔐 Identity Layer (WorkOS)
+
+WorkOS acts as the **source of truth for authentication**.
+
+Supported methods:
+
+* Magic Link authentication
+* Apple OAuth
+* Google OAuth
+* Enterprise SSO
+
+WorkOS handles:
+
+* Credential security
+* Identity federation
+* Authentication UX
+* Account recovery flows
+
+---
+
+## 🧱 Local User Anchor Model
+
+Even though identity lives externally, the application maintains a local `users` table.
+
+This provides:
+
+* Referential integrity for relational data
+* Query performance
+* Clear domain modeling
+* Authorization flexibility
+
+Each local user includes:
+
+* Internal primary key (`id`)
+* `workos_id` (indexed)
+* Email
+* Role / authorization metadata
+
+Users are provisioned automatically using **Just-In-Time creation** after authentication.
+
+---
+
+## 🔐 Authentication Models
+
+### Web Authentication (Session-Based)
+
+Used for:
+
+* Browser users
+* Admin/moderation UI
+* Inertia-rendered pages
+
+Flow:
+
+1. User initiates login
+2. Redirected to WorkOS AuthKit
+3. Authentication completes
+4. Callback handled by Laravel
+5. Session established
+
+Characteristics:
+
+* Cookie-based
+* CSRF protected
+* Standard Laravel middleware
+
+---
+
+### API Authentication (Stateless JWT)
+
+Used by:
+
+* Mobile apps
+* External clients
+* High-throughput API usage
+
+Flow:
+
+1. User authenticates via WorkOS
+2. Authenticated session exchanges for JWT
+3. Laravel signs token (RS256)
+4. Client sends JWT per request
+
+Characteristics:
+
+* Stateless
+* Horizontally scalable
+* No cookies or CSRF
+
+---
+
+## 🔑 JWT Design
+
+* Algorithm: **RS256**
+* Private key signing
+* Public key verification
+* Short TTL (configurable)
+* Minimal claims:
+
+```
+sub   → WorkOS user ID
+email → user email
+exp   → expiration
+```
+
+Custom middleware:
+
+* Validates signature
+* Checks expiration
+* Resolves or creates local user
+* Injects `$request->user()`
+
+---
+
+## 🛣️ Routes Overview
+
+### Web Routes
+
+| Route                   | Purpose                     |
+| ----------------------- | --------------------------- |
+| `/login`                | Begin WorkOS authentication |
+| `/auth/workos/callback` | OAuth callback              |
+| `/dashboard`            | Authenticated UI            |
+
+### API Routes
+
+| Route                | Auth    | Purpose       |
+| -------------------- | ------- | ------------- |
+| `POST /api/v1/token` | Session | Issue JWT     |
+| `GET /api/v1/me`     | JWT     | Current user  |
+| `/api/v1/*`          | JWT     | App resources |
+
+---
+
+## 📱 Mobile App Strategy
+
+Mobile clients:
+
+* Use WorkOS-hosted authentication
+* Never rely on cookies
+* Never interact with Laravel sessions
+* Authenticate exclusively via JWTs
+
+This enables:
+
+* App Store–compliant auth
+* High scalability
+* External API extensibility
+* Clear separation of concerns
+
+---
 
 ## 🛡️ Security Principles
 
-- Fail fast on invalid auth
-- Never trust headers without cryptographic proof
-- Explicit error codes for client UX
-- No silent auth fallbacks
-- No “JWT-only” users without a local anchor
-
-## 📱 Mobile Strategy
-
-Mobile clients authenticate via WorkOS and use **JWTs exclusively**.  
-No cookies. No sessions. Fully stateless.
-
-This enables:
-- App Store–compliant auth
-- High scalability
-- Clear separation between web and API concerns
-
+* Explicit authentication boundaries
+* Cryptographic verification over trust
+* No silent auth fallbacks
+* Clear error semantics
+* Local user anchoring for all identities
 
 ---
 
+## 🧰 Tech Stack
 
-## 📦 Domain Models
+### Backend
 
-- **Forum** – Long‑lived discussion threads
-- **Comment** – Replies on forums and events
-- **Poll** – Immutable public votes with end dates
-- **Event** – Time‑bound civic or community events
-- **Donation** – Public, read‑only financial contributions
-- **Portrait** – Public representations of people (not user profiles)
-- **Legislation** – Proposed or enacted policy artifacts
+* Laravel 12
+* PHP 8.5+
+* MySQL (Docker locally / Laravel Cloud in production)
 
-All primary models are publishable and role‑governed.
+### Authentication
 
-### Roles
+* WorkOS AuthKit
+* OAuth providers
+* RS256 JWT implementation
 
-- **Admin** – Full override authority, verification, legal takedowns
-- **Moderator** – Content approval, moderation, verification assistance
-- **User** – Standard authenticated participant
-- **Guest** – Read‑only access where permitted
+### Frontend
 
-Role helpers exist on the `User` model:
+* Inertia.js
+* React / TypeScript
+* Vite
 
-- `isAdmin()`
-- `isModerator()`
+### Infrastructure
 
-
----
-
-
-## 🧩 Shared Policy Traits
-
-Policies are intentionally DRY’d using reusable traits:
-
-- **AllowsRoles** – Centralized admin/mod override logic
-- **OwnsModel** – Ownership checks via `user_id`
-- **InteractsWithPublishableModels** –
-  - Admin/mod → always allowed
-  - Regular user → allowed only if `status === 'published'`
-
-These traits are composed into model‑specific Policies rather than duplicated.
-
+* Docker (Laravel Sail) for local development
+* Laravel Cloud for deployment
 
 ---
 
+## 🚧 Project Status
 
-## 🗣️ Forums & Comments
+Architecture largely defined; active development ongoing.
 
-### Forums
+### Completed
 
-- Anyone (including guests) can **view** published forums
-- Users can **create** forums
-- Forums **cannot be edited or deleted** once published
-- Forums may be **archived** after prolonged inactivity
-- Optional **anonymous creation** is supported for verified whistleblowing
-  - Identity is hidden publicly
-  - Admin/mod can verify intent and legitimacy
+* WorkOS authentication integration
+* Hybrid session + JWT auth model
+* Containerized local development environment
+* Core civic data structures
 
-### Comments
+### In Progress
 
-- Admin/mod → can comment anywhere
-- Users → can comment only on published forums/events
-- Comment deletion is role‑aware and ownership‑based
-
-All comment authorization is enforced via `ForumPolicy::comment()` and `CommentPolicy`.
-
+* API expansion
+* Mobile client integration
+* Feature refinement
 
 ---
 
+## 🤝 Contributing
 
-## 📊 Polls
+Docker/Sail is configured to minimize onboarding friction.
 
-- Viewable by everyone, including guests
-- Show current tally and end date publicly
-- Immutable after publication
-- No edits or deletion by any role
+Typical contributor workflow:
 
-
----
-
-
-## 💸 Donations
-
-- Public forever
-- Read‑only after creation
-- Donations can be made:
-  - User → User
-  - User → Portrait owner
-  - Portrait owner → User
-
-Transparency is a core design requirement.
-
-
----
-
-
-## 📅 Events
-
-- Viewable by everyone
-- Only users may create events
-- Only creator may update
-- Immutable after start date/time
-- Comments allowed even after event conclusion
-- Sorted by feature
-- Committee hearings
-- Public comment deadlines
-- Floor votes
-- Provides hub for:
-  1. Protests
-  2. Economic Blackouts
-  3. Marches
-  4. Strategic use of effort
-  5. Harnessing collective willpower
-
-
----
-
-
-## 📜 Legislation
-
-- Viewable by everyone
-- Users may propose legislation
-- Requires admin/mod approval to publish
-- Updates are suggested by users and approved by admin/mod
-- Transparency & comprehension, local and national
-  1. Plain language summaries
-  2. "What this actually does" explanations
-  3. Clear who benefits / who pays / what changes
-  4. Who proposed it
-  5. What changed from last version
-  6. What stage is it in, can/cannot be influenced, timeline
-  7. Get alerts for votes
-- Sorted by feature
-- Equal visibility
-- Clear sourcing
-- Separation of facts vs interpretation 
-- No jargon
-
-Legislation maintains a public, auditable history.
-
-
----
-
-
-## 🖼️ Portraits
-
-- Viewable by everyone once published
-- Users may suggest portraits
-- Admin/mod approval required
-- Subject of a portrait may **claim ownership**:
-  - “Is this you? Join and have more say over how you’re represented.”
-  - Identity verified by admin/mod
-- Updates are suggested and approved
-- Deletion only for legal necessity
-- Snapshot of compiled information on entity
-- Sorted by feature
-- Contact Rep info
-- Track votes
-- Follow issues
-
-Portraits are **not** user profiles.
-
-
----
-
-
-## 🧪 Testing
-
-- PHPUnit only (no Pest)
-- Feature tests preferred over unit tests
-- Authorization rules are always tested
-- Minimal test execution is encouraged during development
-
-Examples:
-
-```bash
-php artisan test --compact
-php artisan test --compact tests/Feature/ForumCommentAuthorizationTest.php
+```
+composer install
+cp .env.example .env
+sail up -d
+sail artisan migrate
+sail npm install
+sail npm run dev
 ```
 
+If something isn’t clear:
+
+* open an issue
+* suggest improvements
+* or submit a PR
+
+This project aims to support transparent civic engagement and collaborative development.
 
 ---
 
+## 📄 License
 
-## 🛠️ Development Conventions
+This project is licensed under the **Apache License 2.0**.
 
-- Use `php artisan make:*` commands
-- Use Form Request classes for validation
-- Never call `env()` outside config files
-- Use Eloquent relationships over raw queries
-- Run Pint before finalizing changes:
+You should include a separate `LICENSE` file in the repository containing the full Apache 2.0 license text.
 
-```bash
-vendor/bin/pint --dirty
-```
+Summary:
 
+* ✔ Commercial use allowed
+* ✔ Modification allowed
+* ✔ Distribution allowed
+* ✔ Patent grant included
+* ✔ Requires attribution and license notice
+* ✖ No warranty provided
 
----
+See: [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
 
-
-## 🤖 Laravel Boost
-
-Laravel Boost is enabled and provides:
-
-- Version‑aware documentation search
-- Artisan command introspection
-- Tinker and database query helpers
-- Browser log inspection
-
-When working on Laravel or ecosystem features, documentation is searched via Boost before implementing changes.
-
-
----
-
-
-## 🚀 Status
-
-This README reflects the **intended final architecture**.
-
-Current progress:
-- ✅ WorkOS login flow
-- ✅ Stateless API auth
-- ✅ JWT issuance & validation
-- 🚧 API resource expansion
-- 🚧 Mobile app implementation
-
-Active development.  
-Architecture and authentication foundation are in place.
-This project intentionally favors correctness and durability over speed.
-
-
----
-
-
-## Planned Feature: Decentralized Emergency Messaging
-
-A future release is planned to include a **decentralized, peer-to-peer chat system** designed for emergency and resilience scenarios.
-
-This system is intended to:
-- Provide **end-to-end encrypted messaging**
-- Operate as **open-source** and auditable
-- Use **Bluetooth Low Energy (BLE)** to form a local **mesh network**
-- Function **without internet or cellular service**
-- Enable communication during outages, disasters, or network disruptions
-- Remain **censorship-resistant by design**, with no central server dependency
-
-The goal is to support **local, community-based communication** when traditional infrastructure is unavailable, while prioritizing privacy, transparency, and user safety.
-
-> **Status:** Concept / Research phase  
-> **Note:** This feature is not yet implemented and may evolve significantly as technical, security, and regulatory considerations are evaluated.
-
-
----
-
-
-## Accessibility & Internationalization
-
-This project is designed with a **global audience** in mind and aims to be
-accessible to users across languages, regions, and abilities.
-
-Planned and ongoing efforts include:
-- Support for **internationalization (i18n)** and community-driven translations
-- Accessibility best practices for **screen readers**, keyboard navigation,
-  and high-contrast interfaces
-- Inclusive design decisions aligned with **WCAG guidelines**
-
-Implementation details and contribution guidelines are documented separately.
-
-
----
-
-
-## ❤️ Philosophy
-
-> Juggernaut aims to reduce the expert gap five minutes at a time. If understanding requires legal training, prior context and time to decode jargon then only elites can participate. Will focuses on the ethical consumption/sharing of information, pooling/sharing resources for mutual aid and establishing information archives in perpetuity. Progressive disclosure reduces intimidation, creates agency, and provides information required for personal understanding. 
 

@@ -360,23 +360,8 @@ If something isn’t clear:
 
 This project aims to support transparent civic engagement and collaborative development.
 
----
 
-## 📄 License
 
-This project is licensed under the **Apache License 2.0**.
 
-You should include a separate `LICENSE` file in the repository containing the full Apache 2.0 license text.
-
-Summary:
-
-* ✔ Commercial use allowed
-* ✔ Modification allowed
-* ✔ Distribution allowed
-* ✔ Patent grant included
-* ✔ Requires attribution and license notice
-* ✖ No warranty provided
-
-See: [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
 
 

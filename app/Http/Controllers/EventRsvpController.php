@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Event;
 use App\Models\EventRsvp;
-use App\Http\Requests\StoreEventRsvpRequest;
+use App\Http\Requests\Api\V1\StoreEventRsvpRequest;
 use App\Http\Requests\UpdateEventRsvpRequest;
 use App\Http\Resources\EventRsvpResource;
 use Illuminate\Http\JsonResponse;

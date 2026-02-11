@@ -28,4 +28,13 @@ yarn-error.log
 /.zed
 .mcp.json
 /storage/oauth/*.key
-
+.env.testing
+.env.local
+.env.local.phpunit
+.env.local.phpunit.cache
+.env.local.phpunit.result.cache
+.env.local.phpunit.xml
+.env.local.phpunit.xml.dist
+.env.local.phpunit.xml.dist.cache
+.env.local.phpunit.xml.dist.result.cache
+.env.local.phpunit.xml.result.cache

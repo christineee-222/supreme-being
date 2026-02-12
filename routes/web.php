@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
-
+use App\Http\Controllers\Mobile\MobileAuthStartController;
 use App\Http\Controllers\Auth\WorkOSAuthController;
 use App\Http\Controllers\Api\AuthTokenController;
 use App\Http\Controllers\PollController;
@@ -47,6 +47,8 @@ Route::get('/auth/workos/callback', [WorkOSAuthController::class, 'callback']);
 | the iOS app exchanges for a JWT.
 |
 */
+
+Route::get('/mobile/start', MobileAuthStartController::class);
 
 Route::get('/mobile/complete', function () {
 

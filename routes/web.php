@@ -43,14 +43,18 @@ Route::get('/auth/workos/callback', [WorkOSAuthController::class, 'callback']);
 | Mobile Auth Return Bridge (PUBLIC)
 |--------------------------------------------------------------------------
 |
-| This handles the mobile login redirect safely without relying on
-| shared browser cookies. It generates a one-time auth code that
-| the iOS app exchanges for a JWT.
+| /mobile/start kicks off web login (AuthKit) and remembers where to return.
+| /mobile/complete runs AFTER successful web login, mints a one-time code,
+| and redirects back into the iOS app.
 |
 */
 
-Route::get('/mobile/start', MobileAuthStartController::class);
-Route::get('/mobile/complete', MobileAuthCompleteController::class);
+Route::get('/mobile/start', MobileAuthStartController::class)
+    ->name('mobile.start');
+
+Route::get('/mobile/complete', MobileAuthCompleteController::class)
+    ->name('mobile.complete');
+
 
 /*
 |--------------------------------------------------------------------------

@@ -4,51 +4,60 @@ namespace App\Http\Controllers\Mobile;
 
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Log;
 
 final class MobileAuthStartController
 {
     public function __invoke(Request $request): RedirectResponse
     {
-        // Where to send the browser once WorkOS sends us back to /mobile/complete
-        // iOS passes return_to=assemblyrequired://auth
-        $returnTo = $request->query('return_to', 'assemblyrequired://auth');
+        try {
+            // iOS passes this (ex: assemblyrequired://auth)
+            $returnTo = (string) $request->query('return_to', '');
+            $state = (string) $request->query('state', '');
 
-        // OAuth state for CSRF protection + to look up return_to later
-        $state = $request->query('state') ?: Str::uuid()->toString();
+            // Only allow your app scheme to prevent open-redirect abuse.
+            // If you want to allow HTTPS for debugging, you can add 'https' here.
+            if (! $this->isAllowedReturnTo($returnTo)) {
+                // Safe default: your app scheme endpoint.
+                $returnTo = 'assemblyrequired://auth';
+            }
 
-        // Persist the return target briefly (Auth code lifetime is short)
-        Cache::put("mobile_return_to:{$state}", $returnTo, now()->addMinutes(10));
+            // Remember these for /mobile/complete
+            $request->session()->put('mobile.return_to', $returnTo);
+            $request->session()->put('mobile.state', $state);
 
-        // Build WorkOS authorization URL.
-        // NOTE: This uses config values you should already have set.
-        // You MUST ensure these exist in production:
-        // - services.workos.client_id
-        // - services.workos.redirect_uri (or fallback below)
-        $clientId = config('services.workos.client_id');
-        if (! $clientId) {
-            abort(500, 'Missing WorkOS client id (services.workos.client_id).');
+            // After AuthKit finishes, your callback should redirect()->intended(),
+            // so make intended be /mobile/complete.
+            $request->session()->put('url.intended', route('mobile.complete'));
+
+            // Kick off AuthKit via your existing /login route.
+            return redirect()->route('login');
+        } catch (\Throwable $e) {
+            Log::error('mobile/start failed', [
+                'error' => $e->getMessage(),
+                'class' => get_class($e),
+            ]);
+
+            // Fail closed: send user somewhere safe (home)
+            return redirect('/');
+        }
+    }
+
+    private function isAllowedReturnTo(string $returnTo): bool
+    {
+        if ($returnTo === '') {
+            return false;
         }
 
-        $redirectUri = config('services.workos.redirect_uri')
-            ?: url('/mobile/complete');
+        $scheme = parse_url($returnTo, PHP_URL_SCHEME);
 
-        // Minimal authorize URL (works with standard OAuth authorization endpoint pattern).
-        // If you use a specific WorkOS SDK method in your web controller, we can swap to that,
-        // but this gets you unblocked immediately.
-        $authorizeBase = rtrim((string) config('services.workos.authorize_url', 'https://api.workos.com/oauth/authorize'), '/');
-
-        $query = http_build_query([
-            'client_id'     => $clientId,
-            'redirect_uri'  => $redirectUri,
-            'response_type' => 'code',
-            'state'         => $state,
-        ]);
-
-        $authorizeUrl = "{$authorizeBase}?{$query}";
-
-        return redirect()->away($authorizeUrl);
+        return $scheme === 'assemblyrequired';
     }
 }
+
+
+
+
+
+
 

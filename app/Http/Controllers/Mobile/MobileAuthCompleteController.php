@@ -2,30 +2,89 @@
 
 namespace App\Http\Controllers\Mobile;
 
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
-final class MobileAuthCompleteController extends Controller
+final class MobileAuthCompleteController
 {
-    public function __invoke(Request $request)
+    public function __invoke(Request $request): RedirectResponse
     {
-        $code = $request->query('code');
-        $state = $request->query('state');
+        try {
+            // If not logged in yet, go to /login, then come back here
+            if (! auth()->check()) {
+                $request->session()->put('url.intended', route('mobile.complete'));
+                return redirect()->route('login');
+            }
 
-        if (! $code) {
-            abort(400, 'Missing authorization code');
+            $returnTo = (string) ($request->session()->get('mobile.return_to') ?? 'assemblyrequired://auth');
+            $state = (string) ($request->session()->get('mobile.state') ?? '');
+
+            // Extra safety: only allow your app scheme
+            if (! $this->isAllowedReturnTo($returnTo)) {
+                $returnTo = 'assemblyrequired://auth';
+            }
+
+            // Create a short-lived, single-use auth code
+            $code = Str::random(48);
+
+            Cache::put(
+                "mobile_auth_code:{$code}",
+                auth()->id(),
+                now()->addMinutes(2)
+            );
+
+            // Build: assemblyrequired://auth?code=...&state=...
+            $redirectUrl = $this->appendQueryParams($returnTo, array_filter([
+                'code' => $code,
+                'state' => $state,
+            ], fn ($v) => $v !== ''));
+
+            return redirect()->away($redirectUrl);
+        } catch (\Throwable $e) {
+            Log::error('mobile/complete failed', [
+                'error' => $e->getMessage(),
+                'class' => get_class($e),
+            ]);
+
+            return redirect('/');
+        }
+    }
+
+    private function isAllowedReturnTo(string $returnTo): bool
+    {
+        $scheme = parse_url($returnTo, PHP_URL_SCHEME);
+        return $scheme === 'assemblyrequired';
+    }
+
+    private function appendQueryParams(string $url, array $params): string
+    {
+        $parts = parse_url($url);
+
+        $existing = [];
+        if (! empty($parts['query'])) {
+            parse_str($parts['query'], $existing);
         }
 
-        // Look up where to send the user back in the app
-        $returnTo = $state ? Cache::pull("mobile_return_to:{$state}") : null;
-        $returnTo = $returnTo ?: 'assemblyrequired://auth';
+        $merged = array_merge($existing, $params);
+        $query = http_build_query($merged);
 
-        $redirect = $returnTo
-            . '?code=' . urlencode($code)
-            . ($state ? '&state=' . urlencode($state) : '');
+        $scheme   = $parts['scheme'] ?? '';
+        $host     = $parts['host'] ?? '';
+        $port     = isset($parts['port']) ? ':' . $parts['port'] : '';
+        $path     = $parts['path'] ?? '';
+        $fragment = isset($parts['fragment']) ? '#' . $parts['fragment'] : '';
 
-        return redirect()->away($redirect);
+        // NOTE: for custom schemes like assemblyrequired://auth
+        // parse_url treats "auth" as host. This rebuild keeps that.
+        $base = $scheme !== '' ? "{$scheme}://" : '';
+        $base .= $host !== '' ? "{$host}{$port}" : '';
+        $base .= $path;
+
+        return $query ? "{$base}?{$query}{$fragment}" : "{$base}{$fragment}";
     }
 }
+
 

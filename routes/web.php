@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use App\Http\Controllers\Mobile\MobileAuthStartController;
+use App\Http\Controllers\Mobile\MobileAuthCompleteController;
 use App\Http\Controllers\Auth\WorkOSAuthController;
 use App\Http\Controllers\Api\AuthTokenController;
 use App\Http\Controllers\PollController;
@@ -49,27 +50,7 @@ Route::get('/auth/workos/callback', [WorkOSAuthController::class, 'callback']);
 */
 
 Route::get('/mobile/start', MobileAuthStartController::class);
-
-Route::get('/mobile/complete', function () {
-
-    // If not logged in, start login and remember intended destination
-    if (! auth()->check()) {
-        session(['url.intended' => url('/mobile/complete')]);
-        return redirect()->route('login');
-    }
-
-    // Create a short-lived, single-use auth code
-    $code = Str::random(48);
-
-    Cache::put(
-        "mobile_auth_code:{$code}",
-        auth()->id(),
-        now()->addMinutes(2)
-    );
-
-    // Redirect back into the iOS app via custom scheme
-    return redirect()->away("assemblyrequired://auth-complete?code={$code}");
-});
+Route::get('/mobile/complete', MobileAuthCompleteController::class);
 
 /*
 |--------------------------------------------------------------------------
@@ -144,6 +125,7 @@ Route::middleware(['auth'])->group(function () {
 
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';
+
 
 
 

@@ -1,16 +1,17 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthTokenController;
-use App\Http\Controllers\Mobile\MobileAuthExchangeController;
-use App\Http\Controllers\Api\V1\MeController;
+use App\Http\Controllers\Api\BallotLookupController;
+use App\Http\Controllers\Api\V1\EventCancelController;
 use App\Http\Controllers\Api\V1\EventIndexController;
+use App\Http\Controllers\Api\V1\EventRsvpDestroyController;
+use App\Http\Controllers\Api\V1\EventRsvpStoreController;
 use App\Http\Controllers\Api\V1\EventShowController;
 use App\Http\Controllers\Api\V1\EventStoreController;
 use App\Http\Controllers\Api\V1\EventUpdateController;
-use App\Http\Controllers\Api\V1\EventCancelController;
-use App\Http\Controllers\Api\V1\EventRsvpStoreController;
-use App\Http\Controllers\Api\V1\EventRsvpDestroyController;
+use App\Http\Controllers\Api\V1\MeController;
+use App\Http\Controllers\Mobile\MobileAuthExchangeController;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -33,6 +34,14 @@ Route::get('/ping', function () {
 */
 
 Route::prefix('v1')->group(function () {
+
+    /*
+    |--------------------------------------------------------------------------
+    | Ballot Lookup (public civic data)
+    |--------------------------------------------------------------------------
+    */
+
+    Route::post('/ballot/lookup', BallotLookupController::class);
 
     /*
     |--------------------------------------------------------------------------
@@ -91,8 +100,3 @@ Route::prefix('v1')->group(function () {
         Route::delete('/events/{event}/rsvp', EventRsvpDestroyController::class);
     });
 });
-
-
-
-
-

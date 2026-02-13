@@ -22,7 +22,8 @@ final class BallotLookupTest extends TestCase
             'meta' => ['status', 'input' => ['address']],
         ]);
 
-        $this->assertSame('stub', $response->json('meta.status'));
+        $this->assertSame('provider_stub', $response->json('meta.status'));
+
     }
 
     public function test_ballot_lookup_requires_address(): void

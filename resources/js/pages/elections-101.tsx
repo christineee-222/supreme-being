@@ -95,6 +95,28 @@ export default function Elections101() {
                 </ul>
             </section>
 
+            {/* Why this matters */}
+            <section className="mb-12 max-w-3xl">
+                <h2 className="mb-3 text-2xl font-semibold">
+                    Why this matters
+                </h2>
+
+                <p className="mb-4 text-sm opacity-80">
+                    Elections don’t just choose leaders — they shape everyday realities:
+                    schools, transportation, healthcare access, taxes, housing policy,
+                    public safety, and how communities grow. Understanding what appears
+                    on your ballot helps you make decisions intentionally rather than
+                    reacting to headlines, ads, or social media noise.
+                </p>
+
+                <p className="text-sm opacity-80">
+                    The goal isn’t perfect certainty. It’s confidence that you’ve looked
+                    at reliable information, considered tradeoffs, and made choices that
+                    reflect your priorities.
+                </p>
+            </section>
+
+
             <div id="ballot" className="mt-12 max-w-3xl">
                 <h2 className="mb-3 text-2xl font-semibold">Explore a sample ballot</h2>
                 <p className="mb-6 max-w-2xl text-sm opacity-80">

@@ -26,6 +26,12 @@ Route::get('/', fn () => Inertia::render('welcome'))->name('home');
 Route::get('/topics/elections-101', fn () => Inertia::render('elections-101'))
     ->name('topics.elections-101');
 
+Route::get('/', fn () => Inertia::render('welcome'))->name('home');
+
+Route::get('/topics/ballot-measures', fn () => Inertia::render('ballot-measures-101'))
+    ->name('topics.ballot-measures');
+
+
 /*
 |--------------------------------------------------------------------------
 | Mobile Auth Bridge (Public)

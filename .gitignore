@@ -34,3 +34,8 @@ yarn-error.log
 *.pem
 *.key
 *.crt
+# Local dev proxy / TLS
+Caddyfile.dev
+
+# Temporary ngrok middleware
+app/Http/Middleware/SkipNgrokBrowserWarning.php

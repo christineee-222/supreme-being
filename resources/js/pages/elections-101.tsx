@@ -21,7 +21,8 @@ export default function Elections101() {
                 </div>
             </header>
 
-            <section className="mb-10 max-w-3xl">
+            {/* Quick map */}
+            <section className="mb-12 max-w-3xl">
                 <h2 className="mb-2 text-2xl font-semibold">How elections work (quick map)</h2>
                 <p className="mb-4 text-sm opacity-80">
                     Most elections follow a simple pattern. Once you see the flow, ballots usually feel much less intimidating.
@@ -56,13 +57,62 @@ export default function Elections101() {
                 </ol>
             </section>
 
-            <div id="ballot">
-                <BallotExplorer />
+            {/* New: What's on a US ballot */}
+            <section className="mb-12 max-w-3xl">
+                <h2 className="mb-3 text-2xl font-semibold">What you’ll usually see on a U.S. ballot</h2>
+
+                <p className="mb-5 text-sm opacity-80">
+                    Ballots vary by state and city, but most U.S. voters encounter a mix of candidates, judges, and policy
+                    questions. Seeing the categories ahead of time can make election day feel much less overwhelming.
+                </p>
+
+                <ul className="space-y-3 text-sm">
+                    <li className="rounded-xl border p-4">
+                        <div className="font-medium">Federal offices</div>
+                        <div className="mt-1 opacity-80">President (every 4 years), U.S. Senate, and House of Representatives.</div>
+                    </li>
+
+                    <li className="rounded-xl border p-4">
+                        <div className="font-medium">State offices</div>
+                        <div className="mt-1 opacity-80">
+                            Governor, state legislature, attorney general, secretary of state, and other statewide roles.
+                        </div>
+                    </li>
+
+                    <li className="rounded-xl border p-4">
+                        <div className="font-medium">Local offices</div>
+                        <div className="mt-1 opacity-80">
+                            Mayor, city council, county officials, school board, sheriff, and sometimes judges.
+                        </div>
+                    </li>
+
+                    <li className="rounded-xl border p-4">
+                        <div className="font-medium">Ballot measures</div>
+                        <div className="mt-1 opacity-80">
+                            Policy proposals, funding questions, or constitutional amendments voters decide directly.
+                        </div>
+                    </li>
+                </ul>
+            </section>
+
+            <div id="ballot" className="mt-12 max-w-3xl">
+                <h2 className="mb-3 text-2xl font-semibold">Explore a sample ballot</h2>
+                <p className="mb-6 max-w-2xl text-sm opacity-80">
+                    This is a simplified example to help you recognize common sections. Your actual ballot depends on your address.
+                </p>
+            <BallotExplorer />
             </div>
 
-            <div id="plan">
-                <VotingPlanBuilder />
+            <div id="plan" className="mt-12 max-w-3xl">
+                <h2 className="mb-3 text-2xl font-semibold">Make a voting plan</h2>
+                <p className="mb-6 max-w-2xl text-sm opacity-80">
+                    Decide how you’ll vote (mail, early, day-of), what you need, and what you’ll research before you go.
+                </p>
+            <VotingPlanBuilder />
             </div>
+
         </main>
     );
 }
+
+

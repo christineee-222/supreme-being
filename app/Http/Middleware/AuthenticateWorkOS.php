@@ -13,12 +13,22 @@ use Symfony\Component\HttpFoundation\Response;
 use Throwable;
 use Illuminate\Support\Facades\Auth;
 
-
 class AuthenticateWorkOS
 {
     public function handle(Request $request, Closure $next): Response
     {
         $requestId = $request->attributes->get('request_id');
+
+        /*
+        |--------------------------------------------------------------------------
+        | Allow OAuth callback without API token
+        |--------------------------------------------------------------------------
+        | WorkOS redirects here after login. This request will NOT include
+        | a Bearer token yet, so we must let it through.
+        */
+        if ($request->is('auth/workos/callback')) {
+            return $next($request);
+        }
 
         $header = $request->header('Authorization');
 
@@ -94,7 +104,11 @@ class AuthenticateWorkOS
 
         $user = User::firstOrCreate(
             ['workos_id' => $decoded->sub],
-            ['email' => isset($decoded->email) && is_string($decoded->email) ? $decoded->email : null]
+            [
+                'email' => isset($decoded->email) && is_string($decoded->email)
+                    ? $decoded->email
+                    : null
+            ]
         );
 
         Auth::setUser($user);
@@ -102,6 +116,6 @@ class AuthenticateWorkOS
         $request->setUserResolver(fn (): User => $user);
 
         return $next($request);
-
     }
 }
+

@@ -1,40 +1,36 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Laravel\WorkOS\Http\Requests\AuthKitAuthenticationRequest;
-use Laravel\WorkOS\Http\Requests\AuthKitLoginRequest;
-use Laravel\WorkOS\Http\Requests\AuthKitLogoutRequest;
+use App\Http\Controllers\Auth\WorkOSAuthController;
 
 /*
 |--------------------------------------------------------------------------
 | WorkOS Authentication Routes
 |--------------------------------------------------------------------------
+|
+| IMPORTANT:
+| - Redirect/start routes can be guest-only.
+| - Callback MUST NOT be guest (or you can get 403 if a session already exists).
+| - We use our controller so the mobile bridge "state" is preserved end-to-end.
+|
 */
 
-/**
- * Step 1: Initiate login with WorkOS
- * GET /login
- */
-Route::get('/login', function (AuthKitLoginRequest $request) {
-    return $request->redirect();
-})->middleware('guest')->name('login');
+Route::get('/login', [WorkOSAuthController::class, 'redirect'])
+    ->middleware('guest')
+    ->name('login');
 
-/**
- * Step 2: WorkOS OAuth callback
- * This MUST match WORKOS_REDIRECT_URI exactly
- * GET /auth/workos/callback
- */
-Route::get('/auth/workos/callback', function (AuthKitAuthenticationRequest $request) {
-    return tap(
-        redirect()->intended(route('dashboard')),
-        fn () => $request->authenticate()
-    );
-})->middleware('guest');
+Route::get('/auth/workos/redirect', [WorkOSAuthController::class, 'redirect'])
+    ->middleware('guest')
+    ->name('workos.redirect');
 
-/**
- * Step 3: Logout
- */
-Route::post('/logout', function (AuthKitLogoutRequest $request) {
-    return $request->logout();
-})->middleware('auth')->name('logout');
+// Callback MUST NOT be guest
+Route::get('/auth/workos/callback', [WorkOSAuthController::class, 'callback'])
+    ->name('workos.callback');
+
+Route::post('/logout', [WorkOSAuthController::class, 'logout'])
+    ->middleware('auth')
+    ->name('logout');
+
+
+
 

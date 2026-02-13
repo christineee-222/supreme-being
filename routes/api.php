@@ -1,11 +1,9 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-
 use App\Http\Controllers\Api\AuthTokenController;
-use App\Http\Controllers\Api\V1\MobileAuthExchangeController;
+use App\Http\Controllers\Mobile\MobileAuthExchangeController;
 use App\Http\Controllers\Api\V1\MeController;
-
 use App\Http\Controllers\Api\V1\EventIndexController;
 use App\Http\Controllers\Api\V1\EventShowController;
 use App\Http\Controllers\Api\V1\EventStoreController;
@@ -19,6 +17,7 @@ use App\Http\Controllers\Api\V1\EventRsvpDestroyController;
 | Health / Ping
 |--------------------------------------------------------------------------
 */
+
 Route::get('/ping', function () {
     return response()->json([
         'ok' => true,
@@ -32,6 +31,7 @@ Route::get('/ping', function () {
 | API v1 Routes
 |--------------------------------------------------------------------------
 */
+
 Route::prefix('v1')->group(function () {
 
     /*
@@ -39,6 +39,7 @@ Route::prefix('v1')->group(function () {
     | Mobile Auth: one-time code -> JWT
     |--------------------------------------------------------------------------
     */
+
     Route::post('/mobile/exchange', MobileAuthExchangeController::class);
 
     /*
@@ -47,6 +48,7 @@ Route::prefix('v1')->group(function () {
     |--------------------------------------------------------------------------
     | Used by web frontend; mobile uses exchange endpoint above.
     */
+
     Route::middleware('web')->group(function () {
         Route::post('/token', [AuthTokenController::class, 'store']);
         Route::post('/token/refresh', [AuthTokenController::class, 'refresh']);
@@ -57,6 +59,7 @@ Route::prefix('v1')->group(function () {
     | Authenticated API (WorkOS JWT)
     |--------------------------------------------------------------------------
     */
+
     Route::middleware('auth.workos')->group(function () {
 
         // Current user
@@ -67,6 +70,7 @@ Route::prefix('v1')->group(function () {
         | Events
         |--------------------------------------------------------------------------
         */
+
         Route::get('/events', EventIndexController::class);
         Route::get('/events/{event}', EventShowController::class);
         Route::post('/events', EventStoreController::class);
@@ -82,6 +86,7 @@ Route::prefix('v1')->group(function () {
         | PUT = idempotent set/update RSVP
         | DELETE = remove RSVP
         */
+
         Route::put('/events/{event}/rsvp', EventRsvpStoreController::class);
         Route::delete('/events/{event}/rsvp', EventRsvpDestroyController::class);
     });

@@ -1,0 +1,68 @@
+import BallotExplorer from '../components/BallotExplorer';
+import VotingPlanBuilder from '../components/VotingPlanBuilder';
+
+export default function Elections101() {
+    return (
+        <main className="mx-auto max-w-5xl px-6 py-10">
+            <header className="mb-10">
+                <h1 className="text-3xl font-semibold">Elections 101</h1>
+                <p className="mt-3 max-w-2xl text-base opacity-80">
+                    Elections can feel overwhelming. This page is a calm walkthrough of what a ballot contains, what different
+                    offices actually do, and how to make voting decisions with confidence.
+                </p>
+
+                <div className="mt-6 flex flex-wrap gap-3">
+                    <a href="#ballot" className="rounded-lg border px-3 py-2 text-sm shadow-sm hover:shadow">
+                        Understand a ballot
+                    </a>
+                    <a href="#plan" className="rounded-lg border px-3 py-2 text-sm shadow-sm hover:shadow">
+                        Make a voting plan
+                    </a>
+                </div>
+            </header>
+
+            <section className="mb-10 max-w-3xl">
+                <h2 className="mb-2 text-2xl font-semibold">How elections work (quick map)</h2>
+                <p className="mb-4 text-sm opacity-80">
+                    Most elections follow a simple pattern. Once you see the flow, ballots usually feel much less intimidating.
+                </p>
+
+                <ol className="space-y-3">
+                    <li className="rounded-xl border p-4">
+                        <div className="font-medium">1) Eligibility & registration</div>
+                        <div className="mt-1 text-sm opacity-80">Your address determines which ballot you receive.</div>
+                    </li>
+                    <li className="rounded-xl border p-4">
+                        <div className="font-medium">2) Your ballot is created</div>
+                        <div className="mt-1 text-sm opacity-80">Ballots are local—what you see depends on your district.</div>
+                    </li>
+                    <li className="rounded-xl border p-4">
+                        <div className="font-medium">3) You evaluate choices</div>
+                        <div className="mt-1 text-sm opacity-80">
+                            You’ll usually decide on a mix of people and policies. You don’t need a perfect method—just a trusted
+                            process.
+                        </div>
+                    </li>
+                    <li className="rounded-xl border p-4">
+                        <div className="font-medium">4) Voting happens</div>
+                        <div className="mt-1 text-sm opacity-80">Choose the method that fits your life: early, mail, or day-of.</div>
+                    </li>
+                    <li className="rounded-xl border p-4">
+                        <div className="font-medium">5) Results & what happens next</div>
+                        <div className="mt-1 text-sm opacity-80">
+                            Votes are counted, results are certified, and officials or policies take effect.
+                        </div>
+                    </li>
+                </ol>
+            </section>
+
+            <div id="ballot">
+                <BallotExplorer />
+            </div>
+
+            <div id="plan">
+                <VotingPlanBuilder />
+            </div>
+        </main>
+    );
+}

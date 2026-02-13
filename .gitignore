@@ -30,3 +30,7 @@ yarn-error.log
 /storage/oauth/*.key
 .env.testing
 .env.local
+# Local TLS / dev certs (never commit)
+*.pem
+*.key
+*.crt

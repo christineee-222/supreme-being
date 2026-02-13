@@ -1,12 +1,10 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Str;
 use Inertia\Inertia;
+
 use App\Http\Controllers\Mobile\MobileAuthStartController;
 use App\Http\Controllers\Mobile\MobileAuthCompleteController;
-use App\Http\Controllers\Auth\WorkOSAuthController;
 use App\Http\Controllers\Api\AuthTokenController;
 use App\Http\Controllers\PollController;
 use App\Http\Controllers\DonationController;
@@ -25,27 +23,16 @@ use App\Http\Controllers\CommentController;
 
 Route::get('/', fn () => Inertia::render('welcome'))->name('home');
 
-/*
-|--------------------------------------------------------------------------
-| WorkOS Authentication Routes (Web)
-|--------------------------------------------------------------------------
-|
-| These are intentionally PUBLIC.
-| They start the OAuth flow and receive the callback.
-|
-*/
-
-Route::get('/login', [WorkOSAuthController::class, 'redirect'])->name('login');
-Route::get('/auth/workos/callback', [WorkOSAuthController::class, 'callback']);
+Route::get('/topics/elections-101', fn () => Inertia::render('elections-101'))
+    ->name('topics.elections-101');
 
 /*
 |--------------------------------------------------------------------------
-| Mobile Auth Return Bridge (PUBLIC)
+| Mobile Auth Bridge (Public)
 |--------------------------------------------------------------------------
 |
-| /mobile/start kicks off web login (AuthKit) and remembers where to return.
-| /mobile/complete runs AFTER successful web login, mints a one-time code,
-| and redirects back into the iOS app.
+| These endpoints are used by the iOS app to start the WorkOS flow and then
+| complete it via deep-link back into the app.
 |
 */
 
@@ -54,7 +41,6 @@ Route::get('/mobile/start', MobileAuthStartController::class)
 
 Route::get('/mobile/complete', MobileAuthCompleteController::class)
     ->name('mobile.complete');
-
 
 /*
 |--------------------------------------------------------------------------
@@ -71,56 +57,30 @@ Route::middleware(['auth'])->group(function () {
         ->name('events.show');
 
     /*
-    |--------------------------------------------------------------------------
-    | API Token Exchange (Session → JWT)
-    |--------------------------------------------------------------------------
-    |
-    | Still used by web app, but mobile now uses mobile auth code.
-    |
+    | API Token Exchange (Web → JWT)
     */
-
     Route::post('/api/v1/token', [AuthTokenController::class, 'store']);
 
     /*
-    |--------------------------------------------------------------------------
     | Primary Resources
-    |--------------------------------------------------------------------------
     */
-
-    Route::resource('polls', PollController::class)
-        ->only(['store', 'update', 'destroy']);
-
-    Route::resource('donations', DonationController::class)
-        ->only(['store', 'update', 'destroy']);
-
-    Route::resource('events', EventController::class)
-        ->only(['show', 'store', 'update', 'destroy']);
-
-    Route::resource('forums', ForumController::class)
-        ->only(['store', 'update', 'destroy']);
-
-    Route::resource('portraits', PortraitController::class)
-        ->only(['store', 'update', 'destroy']);
-
-    Route::resource('legislations', LegislationController::class)
-        ->only(['store', 'update', 'destroy']);
+    Route::resource('polls', PollController::class)->only(['store','update','destroy']);
+    Route::resource('donations', DonationController::class)->only(['store','update','destroy']);
+    Route::resource('events', EventController::class)->only(['show','store','update','destroy']);
+    Route::resource('forums', ForumController::class)->only(['store','update','destroy']);
+    Route::resource('portraits', PortraitController::class)->only(['store','update','destroy']);
+    Route::resource('legislations', LegislationController::class)->only(['store','update','destroy']);
 
     /*
-    |--------------------------------------------------------------------------
-    | Event RSVPs (Nested Resource)
-    |--------------------------------------------------------------------------
+    | Event RSVPs
     */
-
     Route::post('/events/{event}/rsvps', [EventRsvpController::class, 'store']);
     Route::patch('/events/{event}/rsvps/{rsvp}', [EventRsvpController::class, 'update']);
     Route::delete('/events/{event}/rsvps/{rsvp}', [EventRsvpController::class, 'destroy']);
 
     /*
-    |--------------------------------------------------------------------------
     | Misc Actions
-    |--------------------------------------------------------------------------
     */
-
     Route::post('polls/{poll}/vote', [PollController::class, 'vote']);
 
     Route::post('/forums/{forum}/comments', [CommentController::class, 'store'])
@@ -129,6 +89,10 @@ Route::middleware(['auth'])->group(function () {
 
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';
+
+
+
+
 
 
 

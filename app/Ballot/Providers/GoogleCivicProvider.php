@@ -56,10 +56,18 @@ final class GoogleCivicProvider implements BallotProvider
         }
 
         // Still stubbed — real API call comes later
+        $response = \Illuminate\Support\Facades\Http::baseUrl($this->baseUrl)
+            ->timeout(10)
+            ->acceptJson()
+            ->get('/voterinfo', [
+                'address' => $address,
+                'key' => $this->apiKey,
+         ]);
+
         return [
             'election' => [
                 'id' => null,
-                'name' => 'Stub Election',
+                'name' => 'Google Civic (unparsed)',
                 'date' => null,
             ],
             'jurisdiction' => [
@@ -70,21 +78,22 @@ final class GoogleCivicProvider implements BallotProvider
             'contests' => [],
             'sources' => [
                 [
-                    'label' => 'Google Civic (stub)',
+                    'label' => 'Google Civic voterinfo',
                     'url' => null,
                 ],
             ],
             'meta' => [
-                'status' => 'provider_stub',
-                'config' => [
-                    'has_api_key' => true,
-                    'base_url' => $this->baseUrl,
+                'status' => 'provider_unparsed',
+                'http' => [
+                    'ok' => $response->ok(),
+                    'status' => $response->status(),
                 ],
                 'input' => [
                     'address' => $address,
                 ],
             ],
         ];
+
     }
 }
 

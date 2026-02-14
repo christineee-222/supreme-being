@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\AuthTokenController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\DonationController;
 use App\Http\Controllers\Donations\CreateDonationCheckoutController;
+use App\Http\Controllers\Donations\StripeWebhookController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\EventRsvpController;
 use App\Http\Controllers\ForumController;
@@ -34,6 +35,9 @@ Route::get('/ballot', fn () => Inertia::render('BallotLookup'))
 
 Route::post('/donate/checkout', CreateDonationCheckoutController::class)
     ->name('donate.checkout');
+
+Route::post('/stripe/webhook', StripeWebhookController::class)
+    ->name('stripe.webhook');
 
 /*
 |--------------------------------------------------------------------------

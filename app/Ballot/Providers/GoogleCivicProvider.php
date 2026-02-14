@@ -65,6 +65,18 @@ final class GoogleCivicProvider implements BallotProvider
 
         $data = $response->json();
 
+        $contests = [];
+
+        if (! empty($data['contests']) && is_array($data['contests'])) {
+            foreach ($data['contests'] as $contest) {
+                $contests[] = [
+                    'type' => $contest['type'] ?? 'unknown',
+                    'office' => $contest['office'] ?? null,
+                    'source' => 'google_civic',
+                ];
+            }
+        }
+
         $state = null;
 
         if (preg_match('/,\s*([A-Z]{2})\s*\d{5}(-\d{4})?\s*$/', strtoupper($address), $matches) === 1) {
@@ -82,7 +94,7 @@ final class GoogleCivicProvider implements BallotProvider
                 'county' => null,
                 'locality' => null,
             ],
-            'contests' => [],
+            'contests' => $contests,
             'sources' => [
                 [
                     'label' => 'Google Civic voterinfo',
@@ -102,7 +114,3 @@ final class GoogleCivicProvider implements BallotProvider
         ];
     }
 }
-
-
-
-

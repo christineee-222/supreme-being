@@ -57,7 +57,8 @@ final class GoogleCivicProvider implements BallotProvider
             ];
         }
 
-        $cacheKey = 'ballot_lookup_'.md5($address);
+        $normalizedAddress = strtolower(trim(preg_replace('/\s+/', ' ', $address)));
+        $cacheKey = 'ballot_lookup_'.md5($normalizedAddress);
 
         $response = Cache::remember($cacheKey, now()->addMinutes(30), function () use ($address) {
             try {

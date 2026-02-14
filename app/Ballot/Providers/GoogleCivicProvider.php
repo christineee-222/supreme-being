@@ -55,13 +55,42 @@ final class GoogleCivicProvider implements BallotProvider
             ];
         }
 
-        $response = \Illuminate\Support\Facades\Http::baseUrl($this->baseUrl)
-            ->timeout(10)
-            ->acceptJson()
-            ->get('/voterinfo', [
-                'address' => $address,
-                'key' => $this->apiKey,
-            ]);
+        try {
+            $response = \Illuminate\Support\Facades\Http::baseUrl($this->baseUrl)
+                ->timeout(10)
+                ->acceptJson()
+                ->get('/voterinfo', [
+                    'address' => $address,
+                    'key' => $this->apiKey,
+                ]);
+        } catch (\Throwable $e) {
+            return [
+                'election' => [
+                    'id' => null,
+                    'name' => 'Google Civic unreachable',
+                    'date' => null,
+                ],
+                'jurisdiction' => [
+                    'state' => null,
+                    'county' => null,
+                    'locality' => null,
+                ],
+                'contests' => [],
+                'sources' => [
+                    [
+                        'label' => 'Google Civic exception',
+                        'url' => null,
+                    ],
+                ],
+                'meta' => [
+                    'status' => 'provider_exception',
+                    'error' => $e->getMessage(),
+                    'input' => [
+                        'address' => $address,
+                    ],
+                ],
+            ];
+        }
 
         // HTTP failure guard
         if (! $response->ok()) {

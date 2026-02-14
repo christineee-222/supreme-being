@@ -71,6 +71,16 @@ final class GoogleCivicProvider implements BallotProvider
             foreach ($data['contests'] as $contest) {
                 $isMeasure = isset($contest['referendumTitle']) || isset($contest['referendumSubtitle']);
 
+                $candidates = [];
+
+                if (! $isMeasure && ! empty($contest['candidates']) && is_array($contest['candidates'])) {
+                    foreach ($contest['candidates'] as $candidate) {
+                        $candidates[] = [
+                            'name' => $candidate['name'] ?? null,
+                        ];
+                    }
+                }
+
                 $contests[] = [
                     'type' => $isMeasure ? 'measure' : 'candidate',
                     'office' => $isMeasure ? null : ($contest['office'] ?? null),
@@ -78,9 +88,11 @@ final class GoogleCivicProvider implements BallotProvider
                         'title' => $contest['referendumTitle'] ?? null,
                         'subtitle' => $contest['referendumSubtitle'] ?? null,
                     ] : null,
+                    'candidates' => $candidates,
                     'raw_type' => $contest['type'] ?? null,
                     'source' => 'google_civic',
                 ];
+
             }
         }
 

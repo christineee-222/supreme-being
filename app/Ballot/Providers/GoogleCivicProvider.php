@@ -69,9 +69,16 @@ final class GoogleCivicProvider implements BallotProvider
 
         if (! empty($data['contests']) && is_array($data['contests'])) {
             foreach ($data['contests'] as $contest) {
+                $isMeasure = isset($contest['referendumTitle']) || isset($contest['referendumSubtitle']);
+
                 $contests[] = [
-                    'type' => $contest['type'] ?? 'unknown',
-                    'office' => $contest['office'] ?? null,
+                    'type' => $isMeasure ? 'measure' : 'candidate',
+                    'office' => $isMeasure ? null : ($contest['office'] ?? null),
+                    'measure' => $isMeasure ? [
+                        'title' => $contest['referendumTitle'] ?? null,
+                        'subtitle' => $contest['referendumSubtitle'] ?? null,
+                    ] : null,
+                    'raw_type' => $contest['type'] ?? null,
                     'source' => 'google_civic',
                 ];
             }

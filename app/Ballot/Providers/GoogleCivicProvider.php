@@ -65,6 +65,12 @@ final class GoogleCivicProvider implements BallotProvider
 
         $data = $response->json();
 
+        $state = null;
+
+        if (preg_match('/,\s*([A-Z]{2})\s*\d{5}(-\d{4})?\s*$/', strtoupper($address), $matches) === 1) {
+            $state = $matches[1];
+        }
+
         return [
             'election' => [
                 'id' => $data['election']['id'] ?? null,
@@ -72,7 +78,7 @@ final class GoogleCivicProvider implements BallotProvider
                 'date' => $data['election']['electionDay'] ?? null,
             ],
             'jurisdiction' => [
-                'state' => null,
+                'state' => $state,
                 'county' => null,
                 'locality' => null,
             ],

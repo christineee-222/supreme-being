@@ -95,6 +95,10 @@ final class GoogleCivicProvider implements BallotProvider
 
         $data = $response->json();
 
+        if (! is_array($data)) {
+            $data = [];
+        }
+
         $contests = [];
 
         if (! empty($data['contests']) && is_array($data['contests'])) {

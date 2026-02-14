@@ -63,6 +63,36 @@ final class GoogleCivicProvider implements BallotProvider
                 'key' => $this->apiKey,
             ]);
 
+        // HTTP failure guard
+        if (! $response->ok()) {
+            return [
+                'election' => [
+                    'id' => null,
+                    'name' => 'Google Civic unavailable',
+                    'date' => null,
+                ],
+                'jurisdiction' => [
+                    'state' => null,
+                    'county' => null,
+                    'locality' => null,
+                ],
+                'contests' => [],
+                'sources' => [
+                    [
+                        'label' => 'Google Civic error',
+                        'url' => null,
+                    ],
+                ],
+                'meta' => [
+                    'status' => 'provider_http_error',
+                    'http_status' => $response->status(),
+                    'input' => [
+                        'address' => $address,
+                    ],
+                ],
+            ];
+        }
+
         $data = $response->json();
 
         $contests = [];
@@ -92,7 +122,6 @@ final class GoogleCivicProvider implements BallotProvider
                     'raw_type' => $contest['type'] ?? null,
                     'source' => 'google_civic',
                 ];
-
             }
         }
 

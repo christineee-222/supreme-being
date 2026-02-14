@@ -55,20 +55,21 @@ final class GoogleCivicProvider implements BallotProvider
             ];
         }
 
-        // Still stubbed — real API call comes later
         $response = \Illuminate\Support\Facades\Http::baseUrl($this->baseUrl)
             ->timeout(10)
             ->acceptJson()
             ->get('/voterinfo', [
                 'address' => $address,
                 'key' => $this->apiKey,
-         ]);
+            ]);
+
+        $data = $response->json();
 
         return [
             'election' => [
-                'id' => null,
-                'name' => 'Google Civic (unparsed)',
-                'date' => null,
+                'id' => $data['election']['id'] ?? null,
+                'name' => $data['election']['name'] ?? 'Google Civic (unparsed)',
+                'date' => $data['election']['electionDay'] ?? null,
             ],
             'jurisdiction' => [
                 'state' => null,
@@ -93,9 +94,9 @@ final class GoogleCivicProvider implements BallotProvider
                 ],
             ],
         ];
-
     }
 }
+
 
 
 

@@ -42,7 +42,18 @@ return [
     'stripe' => [
         'key' => env('STRIPE_KEY'),
         'secret' => env('STRIPE_SECRET'),
-        'webhook_secret' => env('STRIPE_WEBHOOK_SECRET'),
+
+        /*
+        |--------------------------------------------------------------------------
+        | Webhook Secret Handling
+        |--------------------------------------------------------------------------
+        |
+        | Local Stripe CLI testing uses STRIPE_WEBHOOK_SECRET_CLI.
+        | Production Stripe dashboard webhooks use STRIPE_WEBHOOK_SECRET.
+        | The CLI one takes priority if present.
+        |
+        */
+        'webhook_secret' => env('STRIPE_WEBHOOK_SECRET_CLI', env('STRIPE_WEBHOOK_SECRET')),
     ],
 
 ];

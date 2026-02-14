@@ -35,6 +35,13 @@ final class StripeWebhookController extends Controller
         if ($event->type === 'checkout.session.completed') {
             $session = $event->data->object;
 
+            Log::info('Stripe webhook checkout.session.completed', [
+                'event_id' => (string) $event->id,
+                'session_id' => (string) ($session->id ?? ''),
+                'payment_intent' => (string) ($session->payment_intent ?? ''),
+                'metadata_donation_id' => (string) ($session->metadata->donation_id ?? ''),
+            ]);
+
             $donationId = $session->metadata->donation_id ?? null;
 
             $donation = null;
@@ -59,3 +66,4 @@ final class StripeWebhookController extends Controller
         return response('ok', 200);
     }
 }
+

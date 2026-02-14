@@ -33,11 +33,20 @@ Route::get('/topics/ballot-measures', fn () => Inertia::render('ballot-measures-
 Route::get('/ballot', fn () => Inertia::render('BallotLookup'))
     ->name('ballot');
 
-Route::post('/donate/checkout', CreateDonationCheckoutController::class)
-    ->name('donate.checkout');
+//Route::post('/donate/checkout', CreateDonationCheckoutController::class)
+    //->name('donate.checkout');
 
 Route::post('/stripe/webhook', StripeWebhookController::class)
     ->name('stripe.webhook');
+
+Route::get('/donate/success', function () {
+    return Inertia::render('Donate/Success');
+})->name('donate.success');
+
+Route::get('/donate', function () {
+    return Inertia::render('Donate/Index');
+})->name('donate.index');
+
 
 /*
 |--------------------------------------------------------------------------

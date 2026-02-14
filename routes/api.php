@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\V1\EventStoreController;
 use App\Http\Controllers\Api\V1\EventUpdateController;
 use App\Http\Controllers\Api\V1\MeController;
 use App\Http\Controllers\Mobile\MobileAuthExchangeController;
+use App\Http\Controllers\Donations\CreateDonationCheckoutController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -26,6 +27,15 @@ Route::get('/ping', function () {
         'ts' => now()->toISOString(),
     ]);
 });
+
+/*
+|--------------------------------------------------------------------------
+| Donations (Stripe Checkout)
+|--------------------------------------------------------------------------
+*/
+
+Route::post('/donate/checkout', CreateDonationCheckoutController::class)
+    ->name('donate.checkout');
 
 /*
 |--------------------------------------------------------------------------
@@ -100,3 +110,4 @@ Route::prefix('v1')->group(function () {
         Route::delete('/events/{event}/rsvp', EventRsvpDestroyController::class);
     });
 });
+

@@ -7,10 +7,7 @@ return [
     | Third Party Services
     |--------------------------------------------------------------------------
     |
-    | This file is for storing the credentials for third party services such
-    | as Mailgun, Postmark, AWS and more. This file provides the de facto
-    | location for this type of information, allowing packages to have
-    | a conventional file to locate the various service credentials.
+    | Credentials for third-party integrations.
     |
     */
 
@@ -35,19 +32,17 @@ return [
         ],
     ],
 
-    // config/services.php
+    'workos' => [
+        'client_id' => env('WORKOS_CLIENT_ID'),
+        'api_key' => env('WORKOS_API_KEY'),
+        'redirect_url' => env('WORKOS_REDIRECT_URL'),
+        'authkit_domain' => rtrim((string) env('WORKOS_AUTHKIT_DOMAIN', ''), '/'),
+    ],
 
-'workos' => [
-    'client_id'      => env('WORKOS_CLIENT_ID'),
-    'api_key'        => env('WORKOS_API_KEY'),
-
-    'redirect_url'   => env('WORKOS_REDIRECT_URL'),
-    'authkit_domain' => rtrim((string) env('WORKOS_AUTHKIT_DOMAIN', ''), '/'),
-],
-
-
-
-
-
+    'stripe' => [
+        'key' => env('STRIPE_KEY'),
+        'secret' => env('STRIPE_SECRET'),
+        'webhook_secret' => env('STRIPE_WEBHOOK_SECRET'),
+    ],
 
 ];

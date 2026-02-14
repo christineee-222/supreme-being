@@ -6,8 +6,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use App\Models\User;
-use App\Models\EssenceNumen;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 final class Donation extends Model
 {
@@ -19,21 +18,24 @@ final class Donation extends Model
         'status',
         'user_id',
         'essence_numen_id',
+        'stripe_checkout_session_id',
+        'stripe_payment_intent_id',
+        'stripe_webhook_event_id',
     ];
 
-    public function user()
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    public function essenceNumen()
+    public function essenceNumen(): BelongsTo
     {
         return $this->belongsTo(EssenceNumen::class, 'essence_numen_id');
     }
 
-    protected static function booted()
+    protected static function booted(): void
     {
-        static::creating(function (Donation $donation) {
+        self::creating(function (Donation $donation): void {
             if (! $donation->essence_numen_id) {
                 $essence = EssenceNumen::create([
                     'type' => 'donation',
@@ -44,5 +46,3 @@ final class Donation extends Model
         });
     }
 }
-
-

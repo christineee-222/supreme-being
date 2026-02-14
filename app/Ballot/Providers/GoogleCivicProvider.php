@@ -2,6 +2,8 @@
 
 namespace App\Ballot\Providers;
 
+use Illuminate\Support\Facades\Cache;
+
 final class GoogleCivicProvider implements BallotProvider
 {
     public string $apiKey;
@@ -55,15 +57,23 @@ final class GoogleCivicProvider implements BallotProvider
             ];
         }
 
-        try {
-            $response = \Illuminate\Support\Facades\Http::baseUrl($this->baseUrl)
-                ->timeout(10)
-                ->acceptJson()
-                ->get('/voterinfo', [
-                    'address' => $address,
-                    'key' => $this->apiKey,
-                ]);
-        } catch (\Throwable $e) {
+        $cacheKey = 'ballot_lookup_'.md5($address);
+
+        $response = Cache::remember($cacheKey, now()->addMinutes(30), function () use ($address) {
+            try {
+                return \Illuminate\Support\Facades\Http::baseUrl($this->baseUrl)
+                    ->timeout(10)
+                    ->acceptJson()
+                    ->get('/voterinfo', [
+                        'address' => $address,
+                        'key' => $this->apiKey,
+                    ]);
+            } catch (\Throwable $e) {
+                return null;
+            }
+        });
+
+        if ($response === null) {
             return [
                 'election' => [
                     'id' => null,
@@ -84,7 +94,6 @@ final class GoogleCivicProvider implements BallotProvider
                 ],
                 'meta' => [
                     'status' => 'provider_exception',
-                    'error' => $e->getMessage(),
                     'input' => [
                         'address' => $address,
                     ],

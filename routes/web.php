@@ -2,7 +2,6 @@
 
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
-
 use App\Http\Controllers\Mobile\MobileAuthStartController;
 use App\Http\Controllers\Mobile\MobileAuthCompleteController;
 use App\Http\Controllers\Api\AuthTokenController;
@@ -30,6 +29,11 @@ Route::get('/', fn () => Inertia::render('welcome'))->name('home');
 
 Route::get('/topics/ballot-measures', fn () => Inertia::render('ballot-measures-101'))
     ->name('topics.ballot-measures');
+
+Route::get('/ballot', function () {
+    return Inertia::render('BallotLookup');
+});
+
 
 
 /*

@@ -138,6 +138,14 @@ final class GoogleCivicProvider implements BallotProvider
 
         $data = $response->json();
 
+        if (config('ballot.debug')) {
+            logger()->debug('Google Civic raw response', [
+                'address' => $address,
+                'response' => $data,
+            ]);
+        }
+
+
         if (! is_array($data)) {
             $data = [];
         }

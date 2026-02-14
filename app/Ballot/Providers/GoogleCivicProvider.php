@@ -60,19 +60,23 @@ final class GoogleCivicProvider implements BallotProvider
         $normalizedAddress = strtolower(trim(preg_replace('/\s+/', ' ', $address)));
         $cacheKey = 'ballot_lookup_'.md5($normalizedAddress);
 
-        $response = Cache::remember($cacheKey, now()->addMinutes(30), function () use ($address) {
-            try {
-                return \Illuminate\Support\Facades\Http::baseUrl($this->baseUrl)
-                    ->timeout(10)
-                    ->acceptJson()
-                    ->get('/voterinfo', [
-                        'address' => $address,
-                        'key' => $this->apiKey,
-                    ]);
-            } catch (\Throwable $e) {
-                return null;
+        $response = Cache::remember(
+            $cacheKey,
+            now()->addMinutes(config('ballot.cache_minutes', 30)),
+            function () use ($address) {
+                try {
+                    return \Illuminate\Support\Facades\Http::baseUrl($this->baseUrl)
+                        ->timeout(10)
+                        ->acceptJson()
+                        ->get('/voterinfo', [
+                            'address' => $address,
+                            'key' => $this->apiKey,
+                        ]);
+                } catch (\Throwable $e) {
+                    return null;
+                }
             }
-        });
+        );
 
         if ($response === null) {
             return [

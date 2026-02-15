@@ -5,9 +5,8 @@ namespace Tests\Feature;
 use App\Models\Forum;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
 use PHPUnit\Framework\Attributes\Test;
-
+use Tests\TestCase;
 
 class ForumCommentAuthorizationTest extends TestCase
 {
@@ -27,8 +26,8 @@ class ForumCommentAuthorizationTest extends TestCase
         $response->assertRedirect();
         $this->assertDatabaseHas('comments', [
             'body' => 'Admin comment',
-            'forum_id' => $forum->id,
-            'user_id' => $admin->id,
+            'forum_id' => $forum->binaryId(),
+            'user_id' => $admin->binaryId(),
         ]);
     }
 
@@ -63,9 +62,8 @@ class ForumCommentAuthorizationTest extends TestCase
         $response->assertRedirect();
         $this->assertDatabaseHas('comments', [
             'body' => 'Allowed comment',
-            'forum_id' => $forum->id,
-            'user_id' => $user->id,
+            'forum_id' => $forum->binaryId(),
+            'user_id' => $user->binaryId(),
         ]);
     }
 }
-

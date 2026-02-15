@@ -12,7 +12,7 @@ class ForumController extends Controller
         $this->authorize('create', Forum::class);
 
         $forum = Forum::create([
-            'user_id' => auth()->id(),
+            'user_id' => request()->user()->binaryId(),
             // add real fields later
         ]);
 
@@ -30,5 +30,3 @@ class ForumController extends Controller
         return response()->json(['status' => 'authorized']);
     }
 }
-
-

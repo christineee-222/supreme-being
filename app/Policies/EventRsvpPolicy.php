@@ -2,9 +2,9 @@
 
 namespace App\Policies;
 
-use App\Models\User;
 use App\Models\Event;
 use App\Models\EventRsvp;
+use App\Models\User;
 
 class EventRsvpPolicy
 {
@@ -13,24 +13,20 @@ class EventRsvpPolicy
      */
     public function create(User $user, Event $event): bool
     {
-        // Admin override
         if ($user->isAdmin()) {
             return true;
         }
 
-        // Event must be upcoming
         if ($event->hasStarted()) {
             return false;
         }
 
-        // Event must not be cancelled
         if ($event->status === 'cancelled') {
             return false;
         }
 
-        // User cannot RSVP twice
-        return ! EventRsvp::where('user_id', $user->id)
-            ->where('event_id', $event->id)
+        return ! EventRsvp::where('user_id', $user->binaryId())
+            ->where('event_id', $event->binaryId())
             ->exists();
     }
 
@@ -44,7 +40,7 @@ class EventRsvpPolicy
         }
 
         return
-            $rsvp->user_id === $user->id &&
+            $rsvp->user_id === $user->binaryId() &&
             ! $rsvp->event->hasStarted();
     }
 
@@ -58,8 +54,7 @@ class EventRsvpPolicy
         }
 
         return
-            $rsvp->user_id === $user->id &&
+            $rsvp->user_id === $user->binaryId() &&
             ! $rsvp->event->hasStarted();
     }
 }
-

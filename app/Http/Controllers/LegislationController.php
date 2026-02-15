@@ -12,7 +12,7 @@ class LegislationController extends Controller
         $this->authorize('create', Legislation::class);
 
         $legislation = Legislation::create([
-            'user_id' => auth()->id(),
+            'user_id' => request()->user()->binaryId(),
             // add real fields later
         ]);
 
@@ -30,4 +30,3 @@ class LegislationController extends Controller
         return response()->json(['status' => 'authorized']);
     }
 }
-

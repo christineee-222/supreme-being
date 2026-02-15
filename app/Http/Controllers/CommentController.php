@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Forum;
 use App\Http\Requests\StoreCommentRequest;
+use App\Models\Forum;
 
 class CommentController extends Controller
 {
@@ -13,11 +13,9 @@ class CommentController extends Controller
 
         $forum->comments()->create([
             'body' => $request->validated('body'),
-            'user_id' => $request->user()->id,
+            'user_id' => $request->user()->binaryId(),
         ]);
 
         return back();
     }
 }
-
-

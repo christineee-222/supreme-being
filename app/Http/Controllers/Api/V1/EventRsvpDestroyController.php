@@ -15,8 +15,8 @@ final class EventRsvpDestroyController extends Controller
         $user = $request->user();
 
         $rsvp = EventRsvp::query()
-            ->where('user_id', $user->id)
-            ->where('event_id', $event->id)
+            ->where('user_id', $user->binaryId())
+            ->where('event_id', $event->binaryId())
             ->first();
 
         if ($rsvp) {
@@ -33,5 +33,3 @@ final class EventRsvpDestroyController extends Controller
         ]);
     }
 }
-
-

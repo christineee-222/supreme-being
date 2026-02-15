@@ -2,15 +2,16 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\UsesBinaryUuidV7;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use App\Models\Comment;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, UsesBinaryUuidV7;
 
     /**
      * The attributes that are mass assignable.
@@ -36,8 +37,6 @@ class User extends Authenticatable
     ];
 
     /**
-     * The attributes that should be cast.
-     *
      * @return array<string, string>
      */
     protected function casts(): array
@@ -47,17 +46,11 @@ class User extends Authenticatable
         ];
     }
 
-    /**
-     * Relationships
-     */
-    public function comments()
+    public function comments(): HasMany
     {
         return $this->hasMany(Comment::class);
     }
 
-    /**
-     * Role helpers (used by policies)
-     */
     public function isAdmin(): bool
     {
         return $this->role === 'admin';
@@ -68,5 +61,3 @@ class User extends Authenticatable
         return in_array($this->role, ['moderator', 'admin'], true);
     }
 }
-
-

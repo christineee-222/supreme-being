@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Event;
-use App\Models\EventRsvp;
 use App\Http\Requests\Api\V1\StoreEventRsvpRequest;
 use App\Http\Requests\UpdateEventRsvpRequest;
 use App\Http\Resources\EventRsvpResource;
+use App\Models\Event;
+use App\Models\EventRsvp;
 use Illuminate\Http\JsonResponse;
 
 class EventRsvpController extends Controller
@@ -16,9 +16,9 @@ class EventRsvpController extends Controller
         $this->authorize('create', [EventRsvp::class, $event]);
 
         $rsvp = EventRsvp::create([
-            'event_id' => $event->id,
-            'user_id'  => $request->user()->id,
-            'status'   => $request->validated('status'),
+            'event_id' => $event->binaryId(),
+            'user_id' => $request->user()->binaryId(),
+            'status' => $request->validated('status'),
         ]);
 
         return new EventRsvpResource($rsvp);
@@ -47,4 +47,3 @@ class EventRsvpController extends Controller
         ]);
     }
 }
-

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\EventResource;
 use App\Models\Event;
+use App\Models\EventRsvp;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
@@ -24,27 +25,25 @@ final class EventIndexController extends Controller
 
         $user = $request->user();
 
-        $eventsQuery = Event::query()
-            // Events should usually sort by start time, not created_at
-            ->orderBy('starts_at', 'asc');
+        $events = Event::query()
+            ->orderBy('starts_at', 'asc')
+            ->paginate($perPage);
 
-        // Only attempt viewer-specific RSVP data if authenticated.
+        // Manually attach viewer-specific RSVP data (avoids HasOne PK mismatch)
         if ($user) {
-            $eventsQuery->with('rsvpForViewer');
+            $eventIds = $events->getCollection()->map->binaryId()->all();
 
-            // Optional: flatten RSVP status for mobile convenience.
-            // This assumes your rsvpForViewer relationship returns ONE RSVP model for the viewer.
-            $eventsQuery->withExists([
-                // No-op placeholder if you later want exists flags
-            ]);
-        }
+            $rsvps = EventRsvp::query()
+                ->where('user_id', $user->binaryId())
+                ->whereIn('event_id', $eventIds)
+                ->get()
+                ->keyBy(fn (EventRsvp $r) => $r->event_id);
 
-        $events = $eventsQuery->paginate($perPage);
+            $events->getCollection()->transform(function (Event $event) use ($rsvps) {
+                $rsvp = $rsvps->get($event->binaryId());
+                $event->setRelation('rsvpForViewer', $rsvp);
+                $event->rsvp_status = $rsvp?->status;
 
-        // Optional: flatten rsvp_status while preserving nested rsvp resource
-        if ($user) {
-            $events->getCollection()->transform(function ($event) {
-                $event->rsvp_status = optional($event->rsvpForViewer)->status;
                 return $event;
             });
         }
@@ -52,5 +51,3 @@ final class EventIndexController extends Controller
         return EventResource::collection($events);
     }
 }
-
-

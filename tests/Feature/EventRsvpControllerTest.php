@@ -2,12 +2,12 @@
 
 namespace Tests\Feature;
 
-use App\Models\User;
 use App\Models\Event;
 use App\Models\EventRsvp;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
 use PHPUnit\Framework\Attributes\Test;
+use Tests\TestCase;
 
 class EventRsvpControllerTest extends TestCase
 {
@@ -24,14 +24,14 @@ class EventRsvpControllerTest extends TestCase
 
         $response = $this
             ->actingAs($user)
-            ->postJson("/events/{$event->id}/rsvps", [
+            ->postJson("/events/{$event->slug}/rsvps", [
                 'status' => 'going',
             ]);
 
         $response->assertCreated();
         $this->assertDatabaseHas('event_rsvps', [
-            'user_id' => $user->id,
-            'event_id' => $event->id,
+            'user_id' => $user->binaryId(),
+            'event_id' => $event->binaryId(),
             'status' => 'going',
         ]);
     }
@@ -51,7 +51,7 @@ class EventRsvpControllerTest extends TestCase
 
         $response = $this
             ->actingAs($user)
-            ->postJson("/events/{$event->id}/rsvps", [
+            ->postJson("/events/{$event->slug}/rsvps", [
                 'status' => 'going',
             ]);
 
@@ -74,13 +74,13 @@ class EventRsvpControllerTest extends TestCase
 
         $response = $this
             ->actingAs($user)
-            ->patchJson("/events/{$event->id}/rsvps/{$rsvp->id}", [
+            ->patchJson("/events/{$event->slug}/rsvps/{$rsvp->uuid}", [
                 'status' => 'going',
             ]);
 
         $response->assertOk();
         $this->assertDatabaseHas('event_rsvps', [
-            'id' => $rsvp->id,
+            'id' => $rsvp->binaryId(),
             'status' => 'going',
         ]);
     }
@@ -101,7 +101,7 @@ class EventRsvpControllerTest extends TestCase
 
         $response = $this
             ->actingAs($intruder)
-            ->patchJson("/events/{$event->id}/rsvps/{$rsvp->id}", [
+            ->patchJson("/events/{$event->slug}/rsvps/{$rsvp->uuid}", [
                 'status' => 'going',
             ]);
 
@@ -123,11 +123,11 @@ class EventRsvpControllerTest extends TestCase
 
         $response = $this
             ->actingAs($user)
-            ->deleteJson("/events/{$event->id}/rsvps/{$rsvp->id}");
+            ->deleteJson("/events/{$event->slug}/rsvps/{$rsvp->uuid}");
 
         $response->assertOk();
         $this->assertDatabaseMissing('event_rsvps', [
-            'id' => $rsvp->id,
+            'id' => $rsvp->binaryId(),
         ]);
     }
 }

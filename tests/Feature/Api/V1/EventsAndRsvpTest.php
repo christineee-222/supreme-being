@@ -10,8 +10,6 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-
-
 class EventsAndRsvpTest extends TestCase
 {
     use RefreshDatabase;
@@ -40,12 +38,12 @@ class EventsAndRsvpTest extends TestCase
             'starts_at' => now()->addDay(),
         ]);
 
-        $this->getJson("/api/v1/events/{$event->id}")
+        $this->getJson("/api/v1/events/{$event->uuid}")
             ->assertOk()
             ->assertJsonStructure([
                 'data' => ['id', 'title', 'starts_at'],
             ])
-            ->assertJsonPath('data.id', $event->id);
+            ->assertJsonPath('data.id', $event->uuid);
     }
 
     protected function setUp(): void
@@ -54,7 +52,6 @@ class EventsAndRsvpTest extends TestCase
 
         $this->withoutMiddleware(AuthenticateWorkOS::class);
     }
-
 
     #[Test]
     public function put_rsvp_is_idempotent_and_returns_resource(): void
@@ -68,20 +65,20 @@ class EventsAndRsvpTest extends TestCase
         // actingAs() provides it even if middleware is disabled.
         $this->actingAs($user);
 
-        $this->putJson("/api/v1/events/{$event->id}/rsvp", [
+        $this->putJson("/api/v1/events/{$event->uuid}/rsvp", [
             'status' => 'going',
         ])->assertStatus(201)
-          ->assertJsonStructure(['data' => ['id', 'status', 'user_id', 'event_id', 'created_at', 'updated_at']])
-          ->assertJsonPath('data.status', 'going');
+            ->assertJsonStructure(['data' => ['id', 'status', 'user_id', 'event_id', 'created_at', 'updated_at']])
+            ->assertJsonPath('data.status', 'going');
 
-        $this->putJson("/api/v1/events/{$event->id}/rsvp", [
+        $this->putJson("/api/v1/events/{$event->uuid}/rsvp", [
             'status' => 'interested',
         ])->assertOk()
-          ->assertJsonPath('data.status', 'interested');
+            ->assertJsonPath('data.status', 'interested');
 
         $this->assertSame(
             1,
-            EventRsvp::where('user_id', $user->id)->where('event_id', $event->id)->count()
+            EventRsvp::where('user_id', $user->binaryId())->where('event_id', $event->binaryId())->count()
         );
     }
 
@@ -101,12 +98,12 @@ class EventsAndRsvpTest extends TestCase
             'status' => 'going',
         ]);
 
-        $this->deleteJson("/api/v1/events/{$event->id}/rsvp")
+        $this->deleteJson("/api/v1/events/{$event->uuid}/rsvp")
             ->assertOk();
 
         $this->assertDatabaseMissing('event_rsvps', [
-            'user_id' => $user->id,
-            'event_id' => $event->id,
+            'user_id' => $user->binaryId(),
+            'event_id' => $event->binaryId(),
         ]);
     }
 
@@ -120,7 +117,7 @@ class EventsAndRsvpTest extends TestCase
 
         $this->actingAs($user);
 
-        $this->putJson("/api/v1/events/{$event->id}/rsvp", [
+        $this->putJson("/api/v1/events/{$event->uuid}/rsvp", [
             'status' => 'maybe',
         ])->assertStatus(422);
     }

@@ -67,18 +67,18 @@ final class WorkOSAuthController extends Controller
         $base = 'https://api.workos.com/user_management/authorize';
 
         $params = [
-            'client_id'     => $clientId,
-            'redirect_uri'  => $redirectUrl,
+            'client_id' => $clientId,
+            'redirect_uri' => $redirectUrl,
             'response_type' => 'code',
-            'provider'      => 'authkit',
-            'scope'         => 'openid email profile',
+            'provider' => 'authkit',
+            'scope' => 'openid email profile',
         ];
 
         if ($state !== '') {
             $params['state'] = $state;
         }
 
-        return $base . '?' . http_build_query($params);
+        return $base.'?'.http_build_query($params);
     }
 
     /**
@@ -100,7 +100,7 @@ final class WorkOSAuthController extends Controller
 
         Log::info('WorkOS redirect invoked (user_management/authorize)', [
             'redirect_url' => $redirectUrl,
-            'state_len'    => strlen($state),
+            'state_len' => strlen($state),
         ]);
 
         return redirect()->away($authUrl);
@@ -116,24 +116,25 @@ final class WorkOSAuthController extends Controller
 
         Log::info('===== WORKOS CALLBACK START =====', [
             'state_param' => $request->query('state'),
-            'code_param'  => $request->query('code'),
-            'full_url'    => $request->fullUrl(),
+            'code_param' => $request->query('code'),
+            'full_url' => $request->fullUrl(),
         ]);
 
         $code = (string) $request->query('code', '');
         if ($code === '') {
             Log::warning('WorkOS callback missing code');
+
             return redirect()->intended(route('dashboard'));
         }
 
-        $um = new UserManagement();
+        $um = new UserManagement;
         $profile = $um->authenticateWithCode($code);
 
         $user = User::firstOrCreate(
             ['workos_id' => $profile->id],
             [
                 'email' => $profile->email,
-                'name'  => trim(($profile->firstName ?? '') . ' ' . ($profile->lastName ?? '')),
+                'name' => trim(($profile->firstName ?? '').' '.($profile->lastName ?? '')),
             ]
         );
 
@@ -160,12 +161,12 @@ final class WorkOSAuthController extends Controller
                 if ($decoded !== '') {
                     $stateData = json_decode($decoded, true);
 
-                    if (is_array($stateData) && !empty($stateData['is_mobile'])) {
+                    if (is_array($stateData) && ! empty($stateData['is_mobile'])) {
                         $isMobile = true;
 
                         session([
                             'mobile.return_to' => $stateData['return_to'] ?? 'assemblyrequired://auth',
-                            'mobile.state'     => $stateData['mobile_state'] ?? '',
+                            'mobile.state' => $stateData['mobile_state'] ?? '',
                         ]);
                     }
                 }
@@ -173,8 +174,8 @@ final class WorkOSAuthController extends Controller
         }
 
         Log::info('WorkOS callback completed', [
-            'user_id'          => $user->id,
-            'mobile_detected'  => $isMobile,
+            'user_id' => $user->uuid,
+            'mobile_detected' => $isMobile,
             'mobile_return_to' => session('mobile.return_to'),
         ]);
 
@@ -183,19 +184,3 @@ final class WorkOSAuthController extends Controller
             : redirect()->intended(route('dashboard'));
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

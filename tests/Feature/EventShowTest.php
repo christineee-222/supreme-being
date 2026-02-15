@@ -44,9 +44,9 @@ class EventShowTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page
                 ->component('Events/Show')
                 ->has('rsvp', fn (Assert $rsvpProp) => $rsvpProp
-                    ->where('id', $rsvp->id)
-                    ->where('user_id', $user->id)
-                    ->where('event_id', $event->id)
+                    ->where('id', $rsvp->uuid)
+                    ->where('user_id', $user->uuid)
+                    ->where('event_id', $event->uuid)
                 )
             );
     }
@@ -65,5 +65,3 @@ class EventShowTest extends TestCase
             );
     }
 }
-
-

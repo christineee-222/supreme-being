@@ -2,26 +2,36 @@
 
 namespace App\Models;
 
-use App\Models\Forum;
-use App\Models\User;
+use App\Casts\BinaryUuidFk;
+use App\Models\Concerns\UsesBinaryUuidV7;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Comment extends Model
 {
+    use UsesBinaryUuidV7;
+
     protected $fillable = [
         'body',
         'user_id',
         'forum_id',
     ];
 
-    public function user()
+    protected function casts(): array
+    {
+        return [
+            'user_id' => BinaryUuidFk::class,
+            'forum_id' => BinaryUuidFk::class,
+        ];
+    }
+
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    public function forum()
+    public function forum(): BelongsTo
     {
         return $this->belongsTo(Forum::class);
     }
 }
-

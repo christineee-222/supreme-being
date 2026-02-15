@@ -2,7 +2,9 @@
 
 namespace App\Models;
 
-use App\Models\EventRsvp;
+use App\Casts\BinaryUuidFk;
+use App\Models\Concerns\HasUniqueSlug;
+use App\Models\Concerns\UsesBinaryUuidV7;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -13,7 +15,7 @@ use Illuminate\Support\Facades\Auth;
 
 class Event extends Model
 {
-    use HasFactory;
+    use HasFactory, HasUniqueSlug, UsesBinaryUuidV7;
 
     protected $fillable = [
         'title',
@@ -25,15 +27,17 @@ class Event extends Model
         'essence_numen_id',
     ];
 
-    protected $casts = [
-        'starts_at' => 'datetime',
-        'ends_at' => 'datetime',
-        'cancelled_at' => 'datetime',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'user_id' => BinaryUuidFk::class,
+            'essence_numen_id' => BinaryUuidFk::class,
+            'starts_at' => 'datetime',
+            'ends_at' => 'datetime',
+            'cancelled_at' => 'datetime',
+        ];
+    }
 
-    /**
-     * Relationships
-     */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
@@ -49,18 +53,11 @@ class Event extends Model
         return $this->hasMany(EventRsvp::class);
     }
 
-    /**
-     * Used by API to eager-load the RSVP
-     * for the currently authenticated user.
-     */
     public function rsvpForViewer(): HasOne
     {
-        return $this->hasOne(EventRsvp::class)->where('user_id', Auth::id());
+        return $this->hasOne(EventRsvp::class)->where('user_id', Auth::user()?->binaryId());
     }
 
-    /**
-     * Domain helpers (used by policies)
-     */
     public function hasStarted(): bool
     {
         return $this->starts_at !== null
@@ -77,9 +74,6 @@ class Event extends Model
         return $this->status === 'cancelled';
     }
 
-    /**
-     * Model boot logic
-     */
     protected static function booted(): void
     {
         static::creating(function ($event) {

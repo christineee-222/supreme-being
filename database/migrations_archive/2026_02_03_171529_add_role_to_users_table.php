@@ -11,16 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('essence_numen', function (Blueprint $table) {
-            $table->bigIncrements('id')->change();
+        Schema::table('users', function (Blueprint $table) {
+            $table->string('role')->default('user');
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
-    // no op needed
+        Schema::table('users', function (Blueprint $table) {
+            $table->dropColumn('role');
+        });
     }
 };

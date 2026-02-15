@@ -11,9 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-        $table->string('avatar')->nullable()->change();
-    });
+        Schema::table('essence_numen', function (Blueprint $table) {
+            $table->bigIncrements('id')->change();
+        });
     }
 
     /**
@@ -21,8 +21,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-        $table->string('avatar')->nullable(false)->change();
-    });
+        // no op needed
     }
 };

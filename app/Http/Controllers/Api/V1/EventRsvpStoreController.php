@@ -21,8 +21,8 @@ final class EventRsvpStoreController extends Controller
 
         $rsvp = EventRsvp::query()->updateOrCreate(
             [
-                'user_id' => $user->id,
-                'event_id' => $event->id,
+                'user_id' => $user->binaryId(),
+                'event_id' => $event->binaryId(),
             ],
             [
                 'status' => $status,
@@ -32,5 +32,3 @@ final class EventRsvpStoreController extends Controller
         return new EventRsvpResource($rsvp);
     }
 }
-
-

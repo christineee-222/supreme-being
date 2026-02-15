@@ -16,7 +16,7 @@ final class MobileAuthCompleteController
         try {
             Log::info('MobileAuthComplete: start', [
                 'authenticated' => auth()->check(),
-                'user_id' => auth()->id(),
+                'user_id' => auth()->user()?->uuid,
                 'session_id' => $request->session()->getId(),
             ]);
 
@@ -55,13 +55,13 @@ final class MobileAuthCompleteController
 
             Cache::put(
                 "mobile_auth_code:{$code}",
-                auth()->id(),
+                auth()->user()->uuid,
                 now()->addMinutes(5) // slightly longer to avoid race issues
             );
 
             Log::info('MobileAuthComplete: auth code generated', [
                 'code_length' => strlen($code),
-                'user_id' => auth()->id(),
+                'user_id' => auth()->user()->uuid,
             ]);
 
             // Build deep link
@@ -95,6 +95,7 @@ final class MobileAuthCompleteController
     private function isAllowedReturnTo(string $returnTo): bool
     {
         $scheme = parse_url($returnTo, PHP_URL_SCHEME);
+
         return $scheme === 'assemblyrequired';
     }
 
@@ -110,11 +111,11 @@ final class MobileAuthCompleteController
         $merged = array_merge($existing, $params);
         $query = http_build_query($merged);
 
-        $scheme   = $parts['scheme'] ?? '';
-        $host     = $parts['host'] ?? '';
-        $port     = isset($parts['port']) ? ':' . $parts['port'] : '';
-        $path     = $parts['path'] ?? '';
-        $fragment = isset($parts['fragment']) ? '#' . $parts['fragment'] : '';
+        $scheme = $parts['scheme'] ?? '';
+        $host = $parts['host'] ?? '';
+        $port = isset($parts['port']) ? ':'.$parts['port'] : '';
+        $path = $parts['path'] ?? '';
+        $fragment = isset($parts['fragment']) ? '#'.$parts['fragment'] : '';
 
         // Important for custom scheme URLs
         $base = $scheme !== '' ? "{$scheme}://" : '';
@@ -153,6 +154,3 @@ final class MobileAuthCompleteController
 HTML;
     }
 }
-
-
-

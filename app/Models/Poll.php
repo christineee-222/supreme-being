@@ -2,15 +2,16 @@
 
 namespace App\Models;
 
+use App\Casts\BinaryUuidFk;
+use App\Models\Concerns\HasUniqueSlug;
+use App\Models\Concerns\UsesBinaryUuidV7;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use App\Models\EssenceNumen;
-use App\Models\User;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Poll extends Model
 {
-
-    use HasFactory;
+    use HasFactory, HasUniqueSlug, UsesBinaryUuidV7;
 
     protected $fillable = [
         'title',
@@ -22,23 +23,28 @@ class Poll extends Model
         'essence_numen_id',
     ];
 
-    // A poll belongs to a user (creator / owner)
-    public function user()
+    protected function casts(): array
+    {
+        return [
+            'user_id' => BinaryUuidFk::class,
+            'essence_numen_id' => BinaryUuidFk::class,
+        ];
+    }
+
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    // A poll belongs to an essence
-    public function essenceNumen()
+    public function essenceNumen(): BelongsTo
     {
         return $this->belongsTo(EssenceNumen::class, 'essence_numen_id');
     }
 
-    // Auto-create essence when a poll is created
-    protected static function booted()
+    protected static function booted(): void
     {
         static::creating(function ($poll) {
-            if (!$poll->essence_numen_id) {
+            if (! $poll->essence_numen_id) {
                 $essence = EssenceNumen::create([
                     'type' => 'poll',
                 ]);
@@ -48,5 +54,3 @@ class Poll extends Model
         });
     }
 }
-
-

@@ -22,7 +22,7 @@ final class CreateDonationCheckoutController extends Controller
         $currency = strtolower((string) ($validated['currency'] ?? 'usd'));
 
         $donation = Donation::create([
-            'user_id' => $request->user()?->id,
+            'user_id' => $request->user()?->binaryId(),
             'amount' => $amount,
             'currency' => strtoupper($currency),
             'status' => 'pending',

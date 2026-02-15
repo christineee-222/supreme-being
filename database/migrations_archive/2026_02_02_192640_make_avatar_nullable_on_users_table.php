@@ -11,10 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('essence_numen', function (Blueprint $table) {
-            $table->binary('id', 16)->primary();
-            $table->string('type');
-            $table->timestamps();
+        Schema::table('users', function (Blueprint $table) {
+            $table->string('avatar')->nullable()->change();
         });
     }
 
@@ -23,6 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('essence_numen');
+        Schema::table('users', function (Blueprint $table) {
+            $table->string('avatar')->nullable(false)->change();
+        });
     }
 };

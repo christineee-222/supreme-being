@@ -12,17 +12,19 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('comments', function (Blueprint $table) {
-            $table->id();
+            $table->binary('id', 16)->primary();
 
-            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('forum_id')->constrained()->cascadeOnDelete();
+            $table->binary('user_id', 16)->index();
+            $table->foreign('user_id')->references('id')->on('users')->cascadeOnDelete();
+
+            $table->binary('forum_id', 16)->index();
+            $table->foreign('forum_id')->references('id')->on('forums')->cascadeOnDelete();
 
             $table->text('body');
 
             $table->timestamps();
         });
     }
-
 
     /**
      * Reverse the migrations.
@@ -31,5 +33,4 @@ return new class extends Migration
     {
         Schema::dropIfExists('comments');
     }
-
 };

@@ -297,7 +297,7 @@ This enables:
 
 * Laravel 12
 * PHP 8.5+
-* MySQL (Docker locally / Laravel Cloud in production)
+* MySQL 8.0 (Docker locally / Laravel Cloud in production)
 
 ### Authentication
 

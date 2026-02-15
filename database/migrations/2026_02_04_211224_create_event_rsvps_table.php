@@ -12,22 +12,18 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('event_rsvps', function (Blueprint $table) {
-            $table->id();
+            $table->binary('id', 16)->primary();
 
-            $table->foreignId('user_id')
-                ->constrained()
-                ->cascadeOnDelete();
+            $table->binary('user_id', 16)->index();
+            $table->foreign('user_id')->references('id')->on('users')->cascadeOnDelete();
 
-            $table->foreignId('event_id')
-                ->constrained()
-                ->cascadeOnDelete();
+            $table->binary('event_id', 16)->index();
+            $table->foreign('event_id')->references('id')->on('events')->cascadeOnDelete();
 
             $table->string('status')->default('going');
-            // future-safe: going | interested | not_going | waitlisted, etc.
 
             $table->timestamps();
 
-            // One RSVP per user per event
             $table->unique(['user_id', 'event_id']);
         });
     }
@@ -40,4 +36,3 @@ return new class extends Migration
         Schema::dropIfExists('event_rsvps');
     }
 };
-

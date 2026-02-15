@@ -5,6 +5,7 @@ namespace App\Http\Resources;
 use App\Models\Event;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Symfony\Component\Uid\Uuid;
 
 /**
  * @mixin Event
@@ -20,7 +21,7 @@ class EventResource extends JsonResource
     {
         return [
             // Core event identity
-            'id' => $this->id,
+            'id' => $this->uuid,
             'title' => (string) $this->title,
             'description' => $this->description ? (string) $this->description : null,
 
@@ -33,8 +34,8 @@ class EventResource extends JsonResource
             'status' => $this->status,
 
             // Ownership / relations
-            'user_id' => $this->user_id,
-            'essence_numen_id' => $this->essence_numen_id,
+            'user_id' => $this->user_id ? Uuid::fromBinary($this->user_id)->toRfc4122() : null,
+            'essence_numen_id' => $this->essence_numen_id ? Uuid::fromBinary($this->essence_numen_id)->toRfc4122() : null,
 
             // Metadata timestamps
             'created_at' => $this->created_at?->toIso8601String(),
@@ -68,5 +69,3 @@ class EventResource extends JsonResource
         ];
     }
 }
-
-

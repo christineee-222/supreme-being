@@ -15,7 +15,7 @@ class EventStoreController extends Controller
 
         $event = Event::query()->create([
             ...$request->validated(),
-            'user_id' => $request->user()->id,
+            'user_id' => $request->user()->binaryId(),
         ]);
 
         return new EventResource($event);

@@ -3,11 +3,11 @@
 namespace App\Http\Controllers\Mobile;
 
 use App\Http\Controllers\Controller;
+use Firebase\JWT\JWT;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
-use Firebase\JWT\JWT;
 
 final class MobileAuthExchangeController extends Controller
 {
@@ -37,7 +37,7 @@ final class MobileAuthExchangeController extends Controller
 
         if (! $userId) {
             Log::warning('Mobile exchange: code not found or expired', [
-                'code' => substr($code, 0, 8) . '...',
+                'code' => substr($code, 0, 8).'...',
             ]);
 
             return response()->json([
@@ -45,8 +45,10 @@ final class MobileAuthExchangeController extends Controller
             ], 404);
         }
 
-        // Load the user
-        $user = \App\Models\User::find($userId);
+        // Load the user (cached value is a UUID string; convert to binary for lookup)
+        $user = \App\Models\User::query()
+            ->where('id', \Symfony\Component\Uid\Uuid::fromString($userId)->toBinary())
+            ->first();
 
         if (! $user) {
             Log::error('Mobile exchange: user not found', [
@@ -84,7 +86,7 @@ final class MobileAuthExchangeController extends Controller
         $jwt = JWT::encode($payload, $privateKey, 'RS256');
 
         Log::info('Mobile exchange: JWT issued', [
-            'user_id' => $user->id,
+            'user_id' => $user->uuid,
             'workos_id' => $user->workos_id,
         ]);
 

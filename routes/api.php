@@ -10,8 +10,8 @@ use App\Http\Controllers\Api\V1\EventShowController;
 use App\Http\Controllers\Api\V1\EventStoreController;
 use App\Http\Controllers\Api\V1\EventUpdateController;
 use App\Http\Controllers\Api\V1\MeController;
-use App\Http\Controllers\Mobile\MobileAuthExchangeController;
 use App\Http\Controllers\Donations\CreateDonationCheckoutController;
+use App\Http\Controllers\Mobile\MobileAuthExchangeController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -91,12 +91,12 @@ Route::prefix('v1')->group(function () {
         */
 
         Route::get('/events', EventIndexController::class);
-        Route::get('/events/{event}', EventShowController::class);
+        Route::get('/events/{event:id}', EventShowController::class);
         Route::post('/events', EventStoreController::class);
-        Route::patch('/events/{event}', EventUpdateController::class);
+        Route::patch('/events/{event:id}', EventUpdateController::class);
 
         // Domain-specific action (better than DELETE)
-        Route::post('/events/{event}/cancel', EventCancelController::class);
+        Route::post('/events/{event:id}/cancel', EventCancelController::class);
 
         /*
         |--------------------------------------------------------------------------
@@ -106,8 +106,7 @@ Route::prefix('v1')->group(function () {
         | DELETE = remove RSVP
         */
 
-        Route::put('/events/{event}/rsvp', EventRsvpStoreController::class);
-        Route::delete('/events/{event}/rsvp', EventRsvpDestroyController::class);
+        Route::put('/events/{event:id}/rsvp', EventRsvpStoreController::class);
+        Route::delete('/events/{event:id}/rsvp', EventRsvpDestroyController::class);
     });
 });
-

@@ -2,12 +2,16 @@
 
 namespace App\Models;
 
+use App\Casts\BinaryUuidFk;
+use App\Models\Concerns\HasUniqueSlug;
+use App\Models\Concerns\UsesBinaryUuidV7;
 use Illuminate\Database\Eloquent\Model;
-use App\Models\User;
-use App\Models\EssenceNumen;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Portrait extends Model
 {
+    use HasUniqueSlug, UsesBinaryUuidV7;
+
     protected $fillable = [
         'title',
         'description',
@@ -16,20 +20,28 @@ class Portrait extends Model
         'essence_numen_id',
     ];
 
-    public function user()
+    protected function casts(): array
+    {
+        return [
+            'user_id' => BinaryUuidFk::class,
+            'essence_numen_id' => BinaryUuidFk::class,
+        ];
+    }
+
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    public function essenceNumen()
+    public function essenceNumen(): BelongsTo
     {
         return $this->belongsTo(EssenceNumen::class, 'essence_numen_id');
     }
 
-    protected static function booted()
+    protected static function booted(): void
     {
         static::creating(function ($portrait) {
-            if (!$portrait->essence_numen_id) {
+            if (! $portrait->essence_numen_id) {
                 $essence = EssenceNumen::create([
                     'type' => 'portrait',
                 ]);
@@ -39,4 +51,3 @@ class Portrait extends Model
         });
     }
 }
-

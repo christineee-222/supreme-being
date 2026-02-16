@@ -112,7 +112,7 @@ final class WorkOSAuthController extends Controller
      */
     public function callback(Request $request): RedirectResponse
     {
-        $this->configureWorkOS();
+        [$clientId] = $this->configureWorkOS();
 
         Log::info('===== WORKOS CALLBACK START =====', [
             'state_param' => $request->query('state'),
@@ -127,14 +127,45 @@ final class WorkOSAuthController extends Controller
             return redirect()->intended(route('dashboard'));
         }
 
+        Log::info('WorkOS authenticateWithCode input', [
+            'client_id' => $clientId,
+            'redirect_url' => config('services.workos.redirect_url'),
+            'code_len' => strlen($code),
+        ]);
+
         $um = new UserManagement;
-        $profile = $um->authenticateWithCode($code);
+        $resp = $um->authenticateWithCode(
+            clientId: $clientId,
+            code: $code,
+            ipAddress: $request->ip(),
+            userAgent: (string) $request->userAgent(),
+        );
+
+        // In this SDK version, most fields live under $resp->raw
+        $data = is_array($resp->raw ?? null) ? $resp->raw : [];
+        $userData = $data['user'] ?? $data['profile'] ?? $data;
+
+        $workosId = $userData['id'] ?? null;
+        $email = $userData['email'] ?? null;
+
+        $firstName = $userData['first_name'] ?? $userData['firstName'] ?? '';
+        $lastName = $userData['last_name'] ?? $userData['lastName'] ?? '';
+        $name = trim($firstName.' '.$lastName);
+
+        if (! is_string($workosId) || $workosId === '' || ! is_string($email) || $email === '') {
+            Log::error('WorkOS authenticateWithCode returned unexpected shape', [
+                'keys' => array_keys($data),
+                'user_keys' => is_array($userData) ? array_keys($userData) : gettype($userData),
+            ]);
+
+            abort(500, 'WorkOS auth response missing user id/email.');
+        }
 
         $user = User::firstOrCreate(
-            ['workos_id' => $profile->id],
+            ['workos_id' => $workosId],
             [
-                'email' => $profile->email,
-                'name' => trim(($profile->firstName ?? '').' '.($profile->lastName ?? '')),
+                'email' => $email,
+                'name' => $name !== '' ? $name : $email,
             ]
         );
 
@@ -183,4 +214,15 @@ final class WorkOSAuthController extends Controller
             ? redirect()->route('mobile.complete')
             : redirect()->intended(route('dashboard'));
     }
+
+    public function logout(Request $request): RedirectResponse
+    {
+        Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return redirect('/');
+    }
 }
+
+

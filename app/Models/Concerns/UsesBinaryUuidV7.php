@@ -7,9 +7,17 @@ use Symfony\Component\Uid\Uuid;
 
 trait UsesBinaryUuidV7
 {
-    public $incrementing = false;
 
-    protected $keyType = 'string';
+    public function getIncrementing(): bool
+    {
+        return false;
+    }
+
+    public function getKeyType(): string
+    {
+        return 'string';
+    }
+
 
     protected static function bootUsesBinaryUuidV7(): void
     {

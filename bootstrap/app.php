@@ -3,7 +3,6 @@
 use App\Http\Middleware\AuthenticateWorkOS;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
-use App\Http\Middleware\SkipNgrokBrowserWarning;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -52,9 +51,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         // 🌐 Web / Inertia stack
-        $middleware->web(prepend: [
-            SkipNgrokBrowserWarning::class,
-        ]);
+        // (removed SkipNgrokBrowserWarning)
 
         $middleware->web(append: [
             HandleAppearance::class,
@@ -66,6 +63,7 @@ return Application::configure(basePath: dirname(__DIR__))
         //
     })
     ->create();
+
 
 
 

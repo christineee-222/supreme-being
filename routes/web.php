@@ -13,6 +13,8 @@ use App\Http\Controllers\Mobile\MobileAuthCompleteController;
 use App\Http\Controllers\Mobile\MobileAuthStartController;
 use App\Http\Controllers\PollController;
 use App\Http\Controllers\PortraitController;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -71,8 +73,15 @@ Route::get('/mobile/complete', MobileAuthCompleteController::class)
 */
 
 Route::middleware(['auth'])->group(function () {
-    Route::get('/dashboard', fn () => Inertia::render('dashboard'))
-        ->name('dashboard');
+    Route::get('/dashboard', function (Request $request) {
+        Log::info('dashboard hit', [
+            'session_id' => session()->getId(),
+            'has_session_cookie' => $request->hasCookie(config('session.cookie')),
+            'session_cookie_name' => config('session.cookie'),
+        ]);
+
+        return Inertia::render('dashboard');
+    })->name('dashboard');
 
     Route::get('/events/{event}', [EventController::class, 'show'])
         ->name('events.show');
@@ -110,3 +119,4 @@ Route::middleware(['auth'])->group(function () {
 
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';
+

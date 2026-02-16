@@ -133,7 +133,8 @@ final class WorkOSAuthController extends Controller
             'code_len' => strlen($code),
         ]);
 
-        $um = new UserManagement;
+        $um = new UserManagement(config('services.workos.api_key'));
+
         $resp = $um->authenticateWithCode(
             clientId: $clientId,
             code: $code,

@@ -10,6 +10,9 @@ class EssenceNumen extends Model
 {
     use UsesBinaryUuidV7;
 
+    public $incrementing = false;
+    protected $keyType = 'string';
+
     protected $table = 'essence_numen';
 
     protected $fillable = ['type'];
@@ -19,3 +22,4 @@ class EssenceNumen extends Model
         return $this->hasOne(Poll::class, 'essence_numen_id');
     }
 }
+

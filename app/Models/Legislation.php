@@ -12,6 +12,9 @@ class Legislation extends Model
 {
     use HasUniqueSlug, UsesBinaryUuidV7;
 
+    public $incrementing = false;
+    protected $keyType = 'string';
+
     protected $table = 'legislation';
 
     protected $fillable = [
@@ -53,3 +56,4 @@ class Legislation extends Model
         });
     }
 }
+

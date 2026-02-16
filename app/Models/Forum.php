@@ -14,6 +14,9 @@ class Forum extends Model
 {
     use HasFactory, HasUniqueSlug, UsesBinaryUuidV7;
 
+    public $incrementing = false;
+    protected $keyType = 'string';
+
     protected $fillable = [
         'title',
         'description',
@@ -58,3 +61,4 @@ class Forum extends Model
         });
     }
 }
+

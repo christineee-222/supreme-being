@@ -12,6 +12,9 @@ class Portrait extends Model
 {
     use HasUniqueSlug, UsesBinaryUuidV7;
 
+    public $incrementing = false;
+    protected $keyType = 'string';
+
     protected $fillable = [
         'title',
         'description',
@@ -51,3 +54,4 @@ class Portrait extends Model
         });
     }
 }
+

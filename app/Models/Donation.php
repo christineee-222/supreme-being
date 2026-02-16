@@ -14,6 +14,9 @@ final class Donation extends Model
 {
     use HasFactory, UsesBinaryUuidV7;
 
+    public $incrementing = false;
+    protected $keyType = 'string';
+
     protected $fillable = [
         'amount',
         'currency',
@@ -56,3 +59,4 @@ final class Donation extends Model
         });
     }
 }
+

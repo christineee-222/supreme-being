@@ -13,6 +13,9 @@ class User extends Authenticatable
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable, UsesBinaryUuidV7;
 
+    public $incrementing = false;
+    protected $keyType = 'string';
+
     /**
      * The attributes that are mass assignable.
      *
@@ -61,3 +64,4 @@ class User extends Authenticatable
         return in_array($this->role, ['moderator', 'admin'], true);
     }
 }
+

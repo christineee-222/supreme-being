@@ -11,6 +11,9 @@ class Comment extends Model
 {
     use UsesBinaryUuidV7;
 
+    public $incrementing = false;
+    protected $keyType = 'string';
+
     protected $fillable = [
         'body',
         'user_id',
@@ -35,3 +38,4 @@ class Comment extends Model
         return $this->belongsTo(Forum::class);
     }
 }
+

@@ -12,6 +12,9 @@ class EventRsvp extends Model
 {
     use HasFactory, UsesBinaryUuidV7;
 
+    public $incrementing = false;
+    protected $keyType = 'string';
+
     protected $fillable = [
         'user_id',
         'event_id',
@@ -36,3 +39,4 @@ class EventRsvp extends Model
         return $this->belongsTo(Event::class);
     }
 }
+

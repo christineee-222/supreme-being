@@ -1,364 +1,136 @@
-# Civic Engagement App (Working Title)
+# Civic Engagement Platform (Working Title)
+
 ![Laravel](https://img.shields.io/badge/Laravel-12-red)
 ![PHP](https://img.shields.io/badge/PHP-8.5%2B-blue)
 ![Docker](https://img.shields.io/badge/Docker-Sail-informational)
 ![License](https://img.shields.io/badge/License-Proprietary-lightgrey)
 
+A modern civic technology platform designed to improve democratic participation through accessible information, secure identity, and community coordination tools.
 
-A modern civic engagement platform built with **Laravel 12**, designed to support both:
+Built with **Laravel 12**, the system supports both:
+- **Web:** A session-based application powered by Inertia.js.
+- **Mobile:** A stateless, high-volume API for native iOS and Android clients.
 
-* a **session-based web application** (Inertia + Laravel)
-* a **stateless, high-volume API** for native mobile clients (iOS / Android)
+Authentication is managed via **WorkOS**, providing passwordless login, social identity providers, and enterprise SSO while maintaining a high-performance local relational data model.
 
-Authentication and identity are powered by **WorkOS**, enabling secure passwordless login, social identity providers, and enterprise SSO while maintaining a strong local relational data model.
+---
+
+## 🆔 Identifier Strategy (UUIDv7 Binary Architecture)
+
+This application implements a high-performance **Binary UUIDv7** strategy to ensure database efficiency without sacrificing developer experience.
+
+- **Storage:** Primary keys are stored as `BINARY(16)` for optimal indexing and performance.
+- **Boundaries:** UUID strings are used exclusively at system boundaries:
+  - API responses (JSON Resources)
+  - URL Route parameters
+  - JWT / Auth claims
+  - Frontend state & Tests
+
+### Benefits
+- **Performance:** Faster indexed queries and joins compared to string-based UUIDs.
+- **Integrity:** Native Eloquent relationship support by keeping internal IDs in binary format.
+- **Security:** Clean public identifiers that don't leak database sequential logic.
+- **Stability:** A "Fail-Safe" trait ensures binary data never reaches the frontend, preventing malformed UTF-8 crashes.
 
 ---
 
 ## 🚀 Local Development (Docker / Laravel Sail)
 
-This project uses **Laravel Sail (Docker)** to provide a consistent development environment.
+Laravel Sail provides a consistent containerized environment. You do **not** need to manually install PHP, MySQL, or Node on your host machine.
 
-This means contributors do **not** need to manually install:
-
-* PHP
-* MySQL
-* Redis
-* Node dependencies
-* System-level extensions
-
-Everything runs in containers.
-
-### First-time setup
+### First-Time Setup
 
 ```bash
+# 1. Clone the repository
 git clone <repo-url>
 cd social-app
 
+# 2. Install dependencies
 composer install
 cp .env.example .env
 
+# 3. Start the environment
 ./vendor/bin/sail up -d
-./vendor/bin/sail artisan migrate
 
+# 4. Prepare the database & assets
+./vendor/bin/sail artisan migrate
 ./vendor/bin/sail npm install
 ./vendor/bin/sail npm run dev
-```
 
-Then open:
-
-```
-http://localhost
-```
-
-### Daily workflow
-
-Start containers:
-
-```bash
-./vendor/bin/sail up -d
-```
-
-Stop containers:
-
-```bash
-./vendor/bin/sail down
-```
-
-⚠️ Avoid:
-
-```bash
-./vendor/bin/sail down -v
-```
-
-That deletes the local database volume.
+**Access the app at:** [http://localhost](http://localhost)
 
 ---
 
-## ✨ Key Features
+### 🔄 Daily Workflow
 
-### Hybrid architecture
+| Action | Command |
+| :--- | :--- |
+| **Start Containers** | `./vendor/bin/sail up -d` |
+| **Stop Containers** | `./vendor/bin/sail down` |
+| **Run Tests** | `./vendor/bin/sail artisan test` |
 
-* Web app: session-based Laravel authentication
-* API: stateless JWT authentication for mobile and external clients
+> [!CAUTION]
+> Avoid running `./vendor/bin/sail down -v` unless you intend to wipe your local database volumes.
 
-### WorkOS-powered identity
+### ✨ Core Features
 
-Supports:
+#### Hybrid Application Architecture
+* **Session-Based Web:** Secure, traditional web auth for browsers and admin tools.
+* **Stateless JWT API:** Scalable, token-based auth for mobile clients.
 
-* Passwordless Magic Links
-* Sign in with Apple
-* Sign in with Google
-* Enterprise SSO (OIDC / SAML-ready)
+#### WorkOS Identity Integration
+* **Passwordless Magic Links:** Seamless, email-based authentication.
+* **Social Sign-in:** Support for Apple and Google identities.
+* **Enterprise SSO:** OIDC and SAML ready for organizational scaling.
 
-### Mobile-first API design
+#### Civic Engagement Data Model
+* **Users:** Local relational anchors for global WorkOS identities.
+* **Events & RSVPs:** Tools for community coordination and mobilization.
+* **Forums & Polls:** Structured platforms for civic feedback and discussion.
+* **Donations:** Secure, integrated community-led funding modules.
 
-* Stateless authentication
-* No cookies or CSRF
-* Horizontally scalable
-* Designed for native mobile clients
+## 🏗️ Architecture Principles
 
-### Strong relational model
+* **Clear Separation:** Intentional boundaries between Identity (WorkOS), Data (Local MySQL), and API layers to ensure modularity.
+* **Mobile-First Auth:** Stateless API design utilizing JWTs to support high-concurrency mobile usage without session overhead.
+* **Relational Anchoring:** Just-In-Time (JIT) user provisioning that seamlessly links external WorkOS identities to local relational data structures.
+* **RS256 JWTs:** Secure cryptographic verification using asymmetric private/public key pairs, ensuring the API can verify tokens without needing to store the signing secret.
 
-Core domain entities include:
+## 🔐 Identity & Authentication
 
-* Users
-* Events & RSVPs
-* Forums & comments
-* Polls
-* Donations
-* Civic data structures
+### Web Authentication (Session)
+Used for browser users and moderation tools. This layer utilizes standard Laravel cookie-based sessions with full CSRF protection to ensure a secure, stateful experience for web-based interactions.
 
-### Security-focused architecture
+### API Authentication (JWT)
+Designed for mobile apps and external integrations where statelessness is required for scalability.
 
-* Explicit authentication boundaries
-* Signed RS256 JWTs
-* Minimal token claims
-* Fail-fast error handling
-
----
-
-## 🏗️ Architecture Overview
-
-The system deliberately separates:
-
-1. Identity provider
-2. Local relational data model
-3. API authorization layer
-
-This improves scalability, security, and maintainability.
-
----
-
-## 🔐 Identity Layer (WorkOS)
-
-WorkOS acts as the **source of truth for authentication**.
-
-Supported methods:
-
-* Magic Link authentication
-* Apple OAuth
-* Google OAuth
-* Enterprise SSO
-
-WorkOS handles:
-
-* Credential security
-* Identity federation
-* Authentication UX
-* Account recovery flows
-
----
-
-## 🧱 Local User Anchor Model
-
-Even though identity lives externally, the application maintains a local `users` table.
-
-This provides:
-
-* Referential integrity for relational data
-* Query performance
-* Clear domain modeling
-* Authorization flexibility
-
-Each local user includes:
-
-* Internal primary key (`id`)
-* `workos_id` (indexed)
-* Email
-* Role / authorization metadata
-
-Users are provisioned automatically using **Just-In-Time creation** after authentication.
-
----
-
-## 🔐 Authentication Models
-
-### Web Authentication (Session-Based)
-
-Used for:
-
-* Browser users
-* Admin/moderation UI
-* Inertia-rendered pages
-
-Flow:
-
-1. User initiates login
-2. Redirected to WorkOS AuthKit
-3. Authentication completes
-4. Callback handled by Laravel
-5. Session established
-
-Characteristics:
-
-* Cookie-based
-* CSRF protected
-* Standard Laravel middleware
-
----
-
-### API Authentication (Stateless JWT)
-
-Used by:
-
-* Mobile apps
-* External clients
-* High-throughput API usage
-
-Flow:
-
-1. User authenticates via WorkOS
-2. Authenticated session exchanges for JWT
-3. Laravel signs token (RS256)
-4. Client sends JWT per request
-
-Characteristics:
-
-* Stateless
-* Horizontally scalable
-* No cookies or CSRF
-
----
-
-## 🔑 JWT Design
-
-* Algorithm: **RS256**
-* Private key signing
-* Public key verification
-* Short TTL (configurable)
-* Minimal claims:
-
-```
-sub   → WorkOS user ID
-email → user email
-exp   → expiration
-```
-
-Custom middleware:
-
-* Validates signature
-* Checks expiration
-* Resolves or creates local user
-* Injects `$request->user()`
-
----
-
-## 🛣️ Routes Overview
-
-### Web Routes
-
-| Route                   | Purpose                     |
-| ----------------------- | --------------------------- |
-| `/login`                | Begin WorkOS authentication |
-| `/auth/workos/callback` | OAuth callback              |
-| `/dashboard`            | Authenticated UI            |
-
-### API Routes
-
-| Route                | Auth    | Purpose       |
-| -------------------- | ------- | ------------- |
-| `POST /api/v1/token` | Session | Issue JWT     |
-| `GET /api/v1/me`     | JWT     | Current user  |
-| `/api/v1/*`          | JWT     | App resources |
-
----
-
-## 📱 Mobile App Strategy
-
-Mobile clients:
-
-* Use WorkOS-hosted authentication
-* Never rely on cookies
-* Never interact with Laravel sessions
-* Authenticate exclusively via JWTs
-
-This enables:
-
-* App Store–compliant auth
-* High scalability
-* External API extensibility
-* Clear separation of concerns
-
----
-
-## 🛡️ Security Principles
-
-* Explicit authentication boundaries
-* Cryptographic verification over trust
-* No silent auth fallbacks
-* Clear error semantics
-* Local user anchoring for all identities
-
----
+* **Algorithm:** RS256 (Asymmetric Private/Public key signing)
+* **Flow:** Authenticate via WorkOS → Exchange session for JWT → Stateless requests
+* **Claims:** Includes `sub` (WorkOS ID), `email`, and `exp` (Expiration)
 
 ## 🧰 Tech Stack
 
-### Backend
-
-* Laravel 12
-* PHP 8.5+
-* MySQL 8.0 (Docker locally / Laravel Cloud in production)
-
-### Authentication
-
-* WorkOS AuthKit
-* OAuth providers
-* RS256 JWT implementation
-
-### Frontend
-
-* Inertia.js
-* React / TypeScript
-* Vite
-
-### Infrastructure
-
-* Docker (Laravel Sail) for local development
-* Laravel Cloud for deployment
-
----
+- **Backend:** Laravel 12, PHP 8.5+, MySQL 8
+- **Frontend:** Inertia.js, React, TypeScript, Vite
+- **Authentication:** WorkOS AuthKit + Custom RS256 JWT Implementation
+- **Infrastructure:** Docker (Laravel Sail), Target deployment: Laravel Cloud
 
 ## 🚧 Project Status
 
-Architecture largely defined; active development ongoing.
-
-### Completed
-
-* WorkOS authentication integration
-* Hybrid session + JWT auth model
-* Containerized local development environment
-* Core civic data structures
-
-### In Progress
-
-* API expansion
-* Mobile client integration
-* Feature refinement
-
----
+- [x] **Foundation:** Binary UUIDv7 architecture & trait system
+- [x] **Auth:** Hybrid Session + JWT model with WorkOS integration
+- [x] **Environment:** Fully containerized development via Laravel Sail
+- [~] **Development:** API expansion and Mobile client integration
+- [ ] **Pending:** Polls, Civic Data resources, and UI Refinement
 
 ## 🤝 Contributing
 
-Docker/Sail is configured to minimize onboarding friction.
+We welcome contributions that help push the platform forward. Please follow these guidelines:
 
-Typical contributor workflow:
+1. **Start the Conversation:** Open an issue to discuss proposed changes before starting work.
+2. **Quality Assurance:** Ensure the full test suite passes before submitting a PR:
+   ```bash
+   ./vendor/bin/sail artisan test
 
-```
-composer install
-cp .env.example .env
-sail up -d
-sail artisan migrate
-sail npm install
-sail npm run dev
-```
-
-If something isn’t clear:
-
-* open an issue
-* suggest improvements
-* or submit a PR
-
-This project aims to support transparent civic engagement and collaborative development.
-
-
+Building a transparent future through thoughtful technology.
 

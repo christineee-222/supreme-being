@@ -133,14 +133,16 @@ final class WorkOSAuthController extends Controller
             'code_len' => strlen($code),
         ]);
 
-        $um = new UserManagement(config('services.workos.api_key'));
+        \WorkOS\WorkOS::setApiKey(config('services.workos.api_key'));
 
+        $um = new UserManagement();
         $resp = $um->authenticateWithCode(
             clientId: $clientId,
             code: $code,
             ipAddress: $request->ip(),
             userAgent: (string) $request->userAgent(),
         );
+
 
         // In this SDK version, most fields live under $resp->raw
         $data = is_array($resp->raw ?? null) ? $resp->raw : [];

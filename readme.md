@@ -25,6 +25,8 @@ This application implements a high-performance **Binary UUIDv7** strategy to ens
   - URL Route parameters
   - JWT / Auth claims
   - Frontend state & Tests
+  - UUID architecture finalized — imports required in UsesBinaryUuidV7
+  - PK properties must live on models, not trait.
 
 ### Benefits
 - **Performance:** Faster indexed queries and joins compared to string-based UUIDs.

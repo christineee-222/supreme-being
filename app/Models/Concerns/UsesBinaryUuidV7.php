@@ -2,6 +2,8 @@
 
 namespace App\Models\Concerns;
 
+use App\Casts\BinaryUuidFk;
+use Symfony\Component\Uid\Uuid;
 
 trait UsesBinaryUuidV7
 {

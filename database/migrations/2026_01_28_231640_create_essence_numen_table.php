@@ -6,11 +6,12 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
+        if (Schema::hasTable('essence_numen')) {
+            return;
+        }
+
         Schema::create('essence_numen', function (Blueprint $table) {
             $table->binary('id', 16)->primary();
             $table->string('type');
@@ -18,11 +19,9 @@ return new class extends Migration
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('essence_numen');
     }
 };
+

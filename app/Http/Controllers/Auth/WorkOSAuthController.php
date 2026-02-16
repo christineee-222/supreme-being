@@ -172,14 +172,19 @@ final class WorkOSAuthController extends Controller
             ]
         );
 
+        // Capture mobile session flag BEFORE regeneration (which clears old session data)
+        $mobileReturnTo = session()->pull('mobile.return_to');
+
         Auth::login($user);
+        $request->session()->regenerate();
 
         // Detect mobile flow
         $isMobile = false;
 
         // Prefer session flag from /mobile/start
-        if (session()->has('mobile.return_to')) {
+        if ($mobileReturnTo !== null) {
             $isMobile = true;
+            session(['mobile.return_to' => $mobileReturnTo]);
         } else {
             // Fallback: decode state payload from callback
             $stateRaw = (string) $request->query('state', '');

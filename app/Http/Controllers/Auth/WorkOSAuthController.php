@@ -12,7 +12,6 @@ use WorkOS\UserManagement;
 use WorkOS\WorkOS;
 use Inertia\Inertia;
 
-
 final class WorkOSAuthController extends Controller
 {
     /**
@@ -80,57 +79,56 @@ final class WorkOSAuthController extends Controller
      * Redirect to WorkOS login (web + mobile entrypoint)
      */
     public function redirect(Request $request): RedirectResponse|\Symfony\Component\HttpFoundation\Response
-{
-    Log::info('login route hit', [
-        'auth_check' => Auth::check(),
-        'has_session_cookie' => $request->hasCookie(config('session.cookie')),
-        'session_cookie_name' => config('session.cookie'),
-        'session_id' => session()->getId(),
-        'host' => $request->getHost(),
-        'intended' => session('url.intended'),
-        'is_inertia' => $request->header('X-Inertia') ? true : false,
-    ]);
+    {
+        Log::info('login route hit', [
+            'auth_check' => Auth::check(),
+            'has_session_cookie' => $request->hasCookie(config('session.cookie')),
+            'session_cookie_name' => config('session.cookie'),
+            'session_id' => session()->getId(),
+            'host' => $request->getHost(),
+            'intended' => session('url.intended'),
+            'is_inertia' => $request->header('X-Inertia') ? true : false,
+        ]);
 
-    // Prevent redirect loop if already authenticated
-    if (Auth::check()) {
-        // If this was triggered by an Inertia request, force a full navigation
-        if ($request->header('X-Inertia')) {
-            return Inertia::location(route('dashboard'));
+        // Prevent redirect loop if already authenticated
+        if (Auth::check()) {
+            // If this was triggered by an Inertia request, force a full navigation
+            if ($request->header('X-Inertia')) {
+                return Inertia::location(route('dashboard'));
+            }
+
+            return redirect()->route('dashboard');
         }
 
-        return redirect()->route('dashboard');
+        // If user navigated directly to /login, default intended to home
+        if (! session()->has('url.intended')) {
+            session(['url.intended' => route('home')]);
+        }
+
+        [$clientId, $redirectUrl] = $this->configureWorkOS();
+
+        $state = (string) $request->query('state', '');
+
+        $authUrl = $this->buildUserManagementAuthorizeUrl(
+            clientId: $clientId,
+            redirectUrl: $redirectUrl,
+            state: $state,
+        );
+
+        Log::info('WorkOS redirect invoked (user_management/authorize)', [
+            'redirect_url' => $redirectUrl,
+            'state_len' => strlen($state),
+            'intended' => session('url.intended'),
+            'is_inertia' => $request->header('X-Inertia') ? true : false,
+        ]);
+
+        // ✅ KEY FIX: external redirects must be full-page navigations for Inertia
+        if ($request->header('X-Inertia')) {
+            return Inertia::location($authUrl);
+        }
+
+        return redirect()->away($authUrl);
     }
-
-    // If user navigated directly to /login, default intended to home
-    if (! session()->has('url.intended')) {
-        session(['url.intended' => route('home')]);
-    }
-
-    [$clientId, $redirectUrl] = $this->configureWorkOS();
-
-    $state = (string) $request->query('state', '');
-
-    $authUrl = $this->buildUserManagementAuthorizeUrl(
-        clientId: $clientId,
-        redirectUrl: $redirectUrl,
-        state: $state,
-    );
-
-    Log::info('WorkOS redirect invoked (user_management/authorize)', [
-        'redirect_url' => $redirectUrl,
-        'state_len' => strlen($state),
-        'intended' => session('url.intended'),
-        'is_inertia' => $request->header('X-Inertia') ? true : false,
-    ]);
-
-    // ✅ KEY FIX: external redirects must be full-page navigations for Inertia
-    if ($request->header('X-Inertia')) {
-        return Inertia::location($authUrl);
-    }
-
-    return redirect()->away($authUrl);
-}
-
 
     /**
      * WorkOS OAuth callback handler
@@ -192,13 +190,74 @@ final class WorkOSAuthController extends Controller
             abort(500, 'WorkOS auth response missing user id/email.');
         }
 
-        $user = User::firstOrCreate(
-            ['workos_id' => $workosId],
-            [
-                'email' => $email,
-                'name' => $name !== '' ? $name : $email,
-            ]
-        );
+        $derivedName = $name !== '' ? $name : $email;
+
+        /**
+         * ✅ Better matching strategy:
+         * 1) Try workos_id
+         * 2) Fallback to email
+         * 3) If found by email, link by setting workos_id
+         * 4) Update name/email safely (avoid collisions)
+         */
+        $user = User::query()
+            ->where('workos_id', $workosId)
+            ->first();
+
+        if (! $user) {
+            $user = User::query()
+                ->where('email', $email)
+                ->first();
+
+            if ($user) {
+                // Link existing account to WorkOS automatically
+                $user->workos_id = $workosId;
+            }
+        }
+
+        if (! $user) {
+            $user = new User();
+            $user->workos_id = $workosId;
+            $user->email = $email;
+            $user->name = $derivedName;
+            $user->save();
+        } else {
+            // Keep workos_id correct
+            if ($user->workos_id !== $workosId) {
+                $user->workos_id = $workosId;
+            }
+
+            // Update name if present / changed (non-destructive)
+            if ($derivedName !== '' && $user->name !== $derivedName) {
+                $user->name = $derivedName;
+            }
+
+            /**
+             * Email-change edge case:
+             * If WorkOS email differs from our stored email, update it ONLY if it won't collide.
+             */
+            if ($user->email !== $email) {
+                $emailTaken = User::query()
+                    ->where('email', $email)
+                    ->where('id', '!=', $user->id)
+                    ->exists();
+
+                if ($emailTaken) {
+                    Log::warning('WorkOS email differs but new email already belongs to another user; not updating email', [
+                        'user_id' => $user->uuid ?? (string) $user->id,
+                        'workos_id' => $workosId,
+                        'current_email' => $user->email,
+                        'workos_email' => $email,
+                    ]);
+                } else {
+                    $user->email = $email;
+                }
+            }
+
+            // Persist only if dirty
+            if ($user->isDirty()) {
+                $user->save();
+            }
+        }
 
         // Capture mobile session flag BEFORE regeneration
         $mobileReturnTo = session()->pull('mobile.return_to');
@@ -258,6 +317,7 @@ final class WorkOSAuthController extends Controller
         return redirect()->route('home');
     }
 }
+
 
 
 

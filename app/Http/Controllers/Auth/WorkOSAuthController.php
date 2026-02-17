@@ -71,7 +71,7 @@ final class WorkOSAuthController extends Controller
             $params['state'] = $state;
         }
 
-        return $base.'?'.http_build_query($params);
+        return $base . '?' . http_build_query($params);
     }
 
     /**
@@ -112,13 +112,25 @@ final class WorkOSAuthController extends Controller
         Log::info('===== WORKOS CALLBACK START =====', [
             'state_param' => $request->query('state'),
             'code_param' => $request->query('code'),
+            'error_param' => $request->query('error'),
+            'error_description_param' => $request->query('error_description'),
             'full_url' => $request->fullUrl(),
         ]);
 
         $code = (string) $request->query('code', '');
+
+        // ✅ IMPORTANT: If there's no code, do NOT redirect to a protected page.
+        // That can create auth loops (/dashboard -> login -> WorkOS -> callback -> /dashboard ...).
+        // Treat it as a failed/aborted auth attempt and restart auth from the entrypoint.
         if ($code === '') {
-            Log::warning('WorkOS callback missing code');
-            return redirect()->intended(route('dashboard'));
+            Log::warning('WorkOS callback missing code', [
+                'error' => $request->query('error'),
+                'error_description' => $request->query('error_description'),
+            ]);
+
+            return redirect()
+                ->route('workos.redirect')
+                ->with('error', 'Authentication was not completed. Please try again.');
         }
 
         Log::info('WorkOS authenticateWithCode input', [
@@ -145,7 +157,7 @@ final class WorkOSAuthController extends Controller
 
         $firstName = $userData['first_name'] ?? $userData['firstName'] ?? '';
         $lastName = $userData['last_name'] ?? $userData['lastName'] ?? '';
-        $name = trim($firstName.' '.$lastName);
+        $name = trim($firstName . ' ' . $lastName);
 
         if (! is_string($workosId) || $workosId === '' || ! is_string($email) || $email === '') {
             Log::error('WorkOS authenticateWithCode returned unexpected shape', [
@@ -220,6 +232,8 @@ final class WorkOSAuthController extends Controller
         return redirect('/');
     }
 }
+
+
 
 
 

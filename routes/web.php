@@ -13,6 +13,7 @@ use App\Http\Controllers\Mobile\MobileAuthCompleteController;
 use App\Http\Controllers\Mobile\MobileAuthStartController;
 use App\Http\Controllers\PollController;
 use App\Http\Controllers\PortraitController;
+use App\Http\Controllers\Auth\WorkOSAuthController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
@@ -73,6 +74,10 @@ Route::get('/mobile/complete', MobileAuthCompleteController::class)
 */
 
 Route::middleware(['auth'])->group(function () {
+    // ✅ Logout should be POST and authenticated
+    Route::post('/logout', [WorkOSAuthController::class, 'logout'])
+        ->name('logout');
+
     Route::get('/dashboard', function (Request $request) {
         Log::info('dashboard hit', [
             'session_id' => session()->getId(),
@@ -126,5 +131,6 @@ Route::middleware(['auth'])->group(function () {
 
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';
+
 
 

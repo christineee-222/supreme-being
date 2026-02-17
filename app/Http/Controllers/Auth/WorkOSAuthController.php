@@ -40,9 +40,6 @@ final class WorkOSAuthController extends Controller
         return [$clientId, $redirectUrl];
     }
 
-    /**
-     * Base64URL decode helper.
-     */
     private function b64urlDecode(string $data): string
     {
         $data = strtr($data, '-_', '+/');
@@ -55,10 +52,6 @@ final class WorkOSAuthController extends Controller
         return base64_decode($data, true) ?: '';
     }
 
-    /**
-     * Build the WorkOS User Management authorize URL.
-     * IMPORTANT: provider=authkit is required for AuthKit.
-     */
     private function buildUserManagementAuthorizeUrl(
         string $clientId,
         string $redirectUrl,
@@ -82,12 +75,15 @@ final class WorkOSAuthController extends Controller
     }
 
     /**
-     * Web + Mobile entrypoint: sends user to WorkOS authorize URL.
-     * - Web: /login
-     * - Mobile: /auth/workos/redirect (called by /mobile/start)
+     * Redirect to WorkOS login (web + mobile entrypoint)
      */
     public function redirect(Request $request): RedirectResponse
     {
+        // ✅ Prevent redirect loop if already authenticated
+        if (Auth::check()) {
+            return redirect()->route('dashboard');
+        }
+
         [$clientId, $redirectUrl] = $this->configureWorkOS();
 
         $state = (string) $request->query('state', '');
@@ -107,8 +103,7 @@ final class WorkOSAuthController extends Controller
     }
 
     /**
-     * WorkOS OAuth callback: exchanges code for profile, logs user in,
-     * then routes to either web dashboard or mobile complete.
+     * WorkOS OAuth callback handler
      */
     public function callback(Request $request): RedirectResponse
     {
@@ -123,7 +118,6 @@ final class WorkOSAuthController extends Controller
         $code = (string) $request->query('code', '');
         if ($code === '') {
             Log::warning('WorkOS callback missing code');
-
             return redirect()->intended(route('dashboard'));
         }
 
@@ -133,7 +127,7 @@ final class WorkOSAuthController extends Controller
             'code_len' => strlen($code),
         ]);
 
-        \WorkOS\WorkOS::setApiKey(config('services.workos.api_key'));
+        WorkOS::setApiKey(config('services.workos.api_key'));
 
         $um = new UserManagement();
         $resp = $um->authenticateWithCode(
@@ -143,8 +137,6 @@ final class WorkOSAuthController extends Controller
             userAgent: (string) $request->userAgent(),
         );
 
-
-        // In this SDK version, most fields live under $resp->raw
         $data = is_array($resp->raw ?? null) ? $resp->raw : [];
         $userData = $data['user'] ?? $data['profile'] ?? $data;
 
@@ -172,27 +164,23 @@ final class WorkOSAuthController extends Controller
             ]
         );
 
-        // Capture mobile session flag BEFORE regeneration (which clears old session data)
+        // Capture mobile session flag BEFORE regeneration
         $mobileReturnTo = session()->pull('mobile.return_to');
 
         Auth::login($user);
         $request->session()->regenerate();
 
-        // Detect mobile flow
         $isMobile = false;
 
-        // Prefer session flag from /mobile/start
         if ($mobileReturnTo !== null) {
             $isMobile = true;
             session(['mobile.return_to' => $mobileReturnTo]);
         } else {
-            // Fallback: decode state payload from callback
             $stateRaw = (string) $request->query('state', '');
 
             if ($stateRaw !== '') {
                 $decoded = $this->b64urlDecode($stateRaw);
 
-                // Back-compat: normal base64
                 if ($decoded === '') {
                     $decoded = base64_decode($stateRaw, true) ?: '';
                 }
@@ -232,5 +220,6 @@ final class WorkOSAuthController extends Controller
         return redirect('/');
     }
 }
+
 
 

@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use WorkOS\UserManagement;
 use WorkOS\WorkOS;
+use Inertia\Inertia;
+
 
 final class WorkOSAuthController extends Controller
 {
@@ -71,13 +73,13 @@ final class WorkOSAuthController extends Controller
             $params['state'] = $state;
         }
 
-        return $base.'?'.http_build_query($params);
+        return $base . '?' . http_build_query($params);
     }
 
     /**
      * Redirect to WorkOS login (web + mobile entrypoint)
      */
-    public function redirect(Request $request): RedirectResponse
+    public function redirect(Request $request): RedirectResponse|\Symfony\Component\HttpFoundation\Response
 {
     Log::info('login route hit', [
         'auth_check' => Auth::check(),
@@ -85,11 +87,23 @@ final class WorkOSAuthController extends Controller
         'session_cookie_name' => config('session.cookie'),
         'session_id' => session()->getId(),
         'host' => $request->getHost(),
+        'intended' => session('url.intended'),
+        'is_inertia' => $request->header('X-Inertia') ? true : false,
     ]);
 
-    // ✅ Prevent redirect loop if already authenticated
+    // Prevent redirect loop if already authenticated
     if (Auth::check()) {
+        // If this was triggered by an Inertia request, force a full navigation
+        if ($request->header('X-Inertia')) {
+            return Inertia::location(route('dashboard'));
+        }
+
         return redirect()->route('dashboard');
+    }
+
+    // If user navigated directly to /login, default intended to home
+    if (! session()->has('url.intended')) {
+        session(['url.intended' => route('home')]);
     }
 
     [$clientId, $redirectUrl] = $this->configureWorkOS();
@@ -105,7 +119,14 @@ final class WorkOSAuthController extends Controller
     Log::info('WorkOS redirect invoked (user_management/authorize)', [
         'redirect_url' => $redirectUrl,
         'state_len' => strlen($state),
+        'intended' => session('url.intended'),
+        'is_inertia' => $request->header('X-Inertia') ? true : false,
     ]);
+
+    // ✅ KEY FIX: external redirects must be full-page navigations for Inertia
+    if ($request->header('X-Inertia')) {
+        return Inertia::location($authUrl);
+    }
 
     return redirect()->away($authUrl);
 }
@@ -122,12 +143,20 @@ final class WorkOSAuthController extends Controller
             'state_param' => $request->query('state'),
             'code_param' => $request->query('code'),
             'full_url' => $request->fullUrl(),
+            'intended' => session('url.intended'),
         ]);
 
         $code = (string) $request->query('code', '');
+
         if ($code === '') {
-            Log::warning('WorkOS callback missing code');
-            return redirect()->intended(route('dashboard'));
+            Log::warning('WorkOS callback missing code', [
+                'full_url' => $request->fullUrl(),
+            ]);
+
+            // Missing code = failed/aborted OAuth callback; send user back to login.
+            return redirect()
+                ->route('login')
+                ->with('error', 'Authentication failed. Please try again.');
         }
 
         Log::info('WorkOS authenticateWithCode input', [
@@ -135,8 +164,6 @@ final class WorkOSAuthController extends Controller
             'redirect_url' => config('services.workos.redirect_url'),
             'code_len' => strlen($code),
         ]);
-
-        WorkOS::setApiKey(config('services.workos.api_key'));
 
         $um = new UserManagement();
         $resp = $um->authenticateWithCode(
@@ -154,7 +181,7 @@ final class WorkOSAuthController extends Controller
 
         $firstName = $userData['first_name'] ?? $userData['firstName'] ?? '';
         $lastName = $userData['last_name'] ?? $userData['lastName'] ?? '';
-        $name = trim($firstName.' '.$lastName);
+        $name = trim($firstName . ' ' . $lastName);
 
         if (! is_string($workosId) || $workosId === '' || ! is_string($email) || $email === '') {
             Log::error('WorkOS authenticateWithCode returned unexpected shape', [
@@ -213,22 +240,27 @@ final class WorkOSAuthController extends Controller
             'user_id' => $user->uuid,
             'mobile_detected' => $isMobile,
             'mobile_return_to' => session('mobile.return_to'),
+            'intended' => session('url.intended'),
         ]);
 
         return $isMobile
             ? redirect()->route('mobile.complete')
-            : redirect()->intended(route('dashboard'));
+            : redirect()->intended(route('home'));
     }
 
     public function logout(Request $request): RedirectResponse
     {
         Auth::logout();
+
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect('/');
+        return redirect()->route('home');
     }
 }
+
+
+
 
 
 

@@ -18,7 +18,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
 
-        // ⭐ IMPORTANT: Trust reverse proxy headers (fix HTTPS detection behind Caddy)
+        // ⭐ IMPORTANT: Trust reverse proxy headers (fix HTTPS detection behind proxy)
         $middleware->trustProxies(
             at: '*',
             headers: SymfonyRequest::HEADER_X_FORWARDED_FOR
@@ -52,7 +52,6 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // 🌐 Web / Inertia stack
         // (removed SkipNgrokBrowserWarning)
-
         $middleware->web(append: [
             HandleAppearance::class,
             HandleInertiaRequests::class,
@@ -63,6 +62,7 @@ return Application::configure(basePath: dirname(__DIR__))
         //
     })
     ->create();
+
 
 
 

@@ -3,8 +3,8 @@
 use App\Http\Controllers\Api\AuthTokenController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\DonationController;
-use App\Http\Controllers\Donations\CreateDonationCheckoutController;
 use App\Http\Controllers\Donations\StripeWebhookController;
+// use App\Http\Controllers\Donations\CreateDonationCheckoutController; // Uncomment if re-enabling donate checkout
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\EventRsvpController;
 use App\Http\Controllers\ForumController;
@@ -35,28 +35,28 @@ Route::get('/topics/ballot-measures', fn () => Inertia::render('ballot-measures-
 Route::get('/ballot', fn () => Inertia::render('BallotLookup'))
     ->name('ballot');
 
-//Route::post('/donate/checkout', CreateDonationCheckoutController::class)
-    //->name('donate.checkout');
+/*
+| Donations (Public)
+*/
+
+// Route::post('/donate/checkout', CreateDonationCheckoutController::class)
+//     ->name('donate.checkout');
 
 Route::post('/stripe/webhook', StripeWebhookController::class)
     ->name('stripe.webhook');
 
-Route::get('/donate/success', function () {
-    return Inertia::render('Donate/Success');
-})->name('donate.success');
+Route::get('/donate/success', fn () => Inertia::render('Donate/Success'))
+    ->name('donate.success');
 
-Route::get('/donate', function () {
-    return Inertia::render('Donate/Index');
-})->name('donate.index');
-
+Route::get('/donate', fn () => Inertia::render('Donate/Index'))
+    ->name('donate.index');
 
 /*
 |--------------------------------------------------------------------------
 | Mobile Auth Bridge (Public)
 |--------------------------------------------------------------------------
 |
-| These endpoints are used by the iOS app to start the WorkOS flow and then
-| complete it via deep-link back into the app.
+| Used by the iOS app to start the WorkOS flow and complete via deep link.
 |
 */
 
@@ -87,9 +87,10 @@ Route::middleware(['auth'])->group(function () {
         ->name('events.show');
 
     /*
-    | API Token Exchange (Web → JWT)
+    | API Token Exchange (Web → JWT)  (NOTE: You may remove/replace when switching fully to Sanctum)
     */
-    Route::post('/api/v1/token', [AuthTokenController::class, 'store']);
+    Route::post('/api/v1/token', [AuthTokenController::class, 'store'])
+        ->name('api.v1.token.store');
 
     /*
     | Primary Resources
@@ -104,14 +105,20 @@ Route::middleware(['auth'])->group(function () {
     /*
     | Event RSVPs
     */
-    Route::post('/events/{event}/rsvps', [EventRsvpController::class, 'store']);
-    Route::patch('/events/{event}/rsvps/{rsvp}', [EventRsvpController::class, 'update']);
-    Route::delete('/events/{event}/rsvps/{rsvp}', [EventRsvpController::class, 'destroy']);
+    Route::post('/events/{event}/rsvps', [EventRsvpController::class, 'store'])
+        ->name('events.rsvps.store');
+
+    Route::patch('/events/{event}/rsvps/{rsvp}', [EventRsvpController::class, 'update'])
+        ->name('events.rsvps.update');
+
+    Route::delete('/events/{event}/rsvps/{rsvp}', [EventRsvpController::class, 'destroy'])
+        ->name('events.rsvps.destroy');
 
     /*
     | Misc Actions
     */
-    Route::post('polls/{poll}/vote', [PollController::class, 'vote']);
+    Route::post('polls/{poll}/vote', [PollController::class, 'vote'])
+        ->name('polls.vote');
 
     Route::post('/forums/{forum}/comments', [CommentController::class, 'store'])
         ->name('forums.comments.store');
@@ -119,4 +126,5 @@ Route::middleware(['auth'])->group(function () {
 
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';
+
 

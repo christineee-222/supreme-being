@@ -26,8 +26,12 @@ class WorkOSAuthControllerTest extends TestCase
     /**
      * Mock the WorkOS UserManagement SDK to return a fake user profile.
      */
-    private function mockWorkOSAuthenticateWithCode(string $workosId, string $email, string $firstName = '', string $lastName = ''): void
-    {
+    private function mockWorkOSAuthenticateWithCode(
+        string $workosId,
+        string $email,
+        string $firstName = '',
+        string $lastName = ''
+    ): void {
         $response = new \stdClass();
         $response->raw = [
             'user' => [
@@ -38,7 +42,7 @@ class WorkOSAuthControllerTest extends TestCase
             ],
         ];
 
-        $mock = Mockery::mock('overload:'.UserManagement::class);
+        $mock = Mockery::mock('overload:' . UserManagement::class);
         $mock->shouldReceive('authenticateWithCode')
             ->once()
             ->andReturn($response);
@@ -60,10 +64,10 @@ class WorkOSAuthControllerTest extends TestCase
             ->assertRedirect(route('dashboard'));
     }
 
-    public function test_callback_without_code_redirects_to_dashboard(): void
+    public function test_callback_without_code_redirects_to_login(): void
     {
         $this->get('/auth/workos/callback')
-            ->assertRedirect();
+            ->assertRedirect('/login');
     }
 
     public function test_callback_with_code_creates_user_and_logs_in(): void
@@ -77,7 +81,7 @@ class WorkOSAuthControllerTest extends TestCase
 
         $response = $this->get('/auth/workos/callback?code=test_auth_code');
 
-        $response->assertRedirect(route('dashboard'));
+        $response->assertRedirect('/');
 
         $this->assertAuthenticated();
         $this->assertDatabaseHas('users', [
@@ -102,7 +106,7 @@ class WorkOSAuthControllerTest extends TestCase
         );
 
         $this->get('/auth/workos/callback?code=test_auth_code')
-            ->assertRedirect(route('dashboard'));
+            ->assertRedirect('/');
 
         $this->assertAuthenticatedAs($existing);
         $this->assertDatabaseCount('users', 1);
@@ -115,11 +119,9 @@ class WorkOSAuthControllerTest extends TestCase
             email: 'persist@example.com',
         );
 
-        // Perform the callback (this sets the session cookie)
         $callbackResponse = $this->get('/auth/workos/callback?code=test_auth_code');
-        $callbackResponse->assertRedirect(route('dashboard'));
+        $callbackResponse->assertRedirect('/');
 
-        // Simulate a subsequent request (new tab) using the same session
         $this->get('/dashboard')->assertOk();
     }
 
@@ -130,7 +132,6 @@ class WorkOSAuthControllerTest extends TestCase
             email: 'regen@example.com',
         );
 
-        // Start a session before the callback
         $this->get('/');
         $sessionIdBefore = session()->getId();
 
@@ -153,7 +154,7 @@ class WorkOSAuthControllerTest extends TestCase
             'mobile_state' => 'xyz',
         ]));
 
-        $this->get('/auth/workos/callback?code=test_auth_code&state='.$statePayload)
+        $this->get('/auth/workos/callback?code=test_auth_code&state=' . $statePayload)
             ->assertRedirect(route('mobile.complete'));
     }
 
@@ -186,3 +187,5 @@ class WorkOSAuthControllerTest extends TestCase
             ->assertRedirect('/login');
     }
 }
+
+

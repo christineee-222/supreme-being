@@ -36,12 +36,12 @@ class AuthFlowTest extends TestCase
         File::put(storage_path('oauth/workos-public.key'), $publicKey);
     }
 
-    public function test_me_requires_a_bearer_token(): void
+    public function test_me_requires_authentication(): void
     {
         $this->getJson('/api/v1/me')
             ->assertStatus(401)
             ->assertJson([
-                'error' => 'MISSING_TOKEN',
+                'message' => 'Unauthenticated.',
             ]);
     }
 
@@ -52,7 +52,7 @@ class AuthFlowTest extends TestCase
         ])
             ->assertStatus(401)
             ->assertJson([
-                'error' => 'INVALID_TOKEN',
+                'message' => 'Unauthenticated.',
             ]);
     }
 

@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\V1\EventShowController;
 use App\Http\Controllers\Api\V1\EventStoreController;
 use App\Http\Controllers\Api\V1\EventUpdateController;
 use App\Http\Controllers\Api\V1\MeController;
+use App\Http\Controllers\Api\V1\SanctumTokenController;
 use App\Http\Controllers\Donations\CreateDonationCheckoutController;
 use App\Http\Controllers\Mobile\MobileAuthExchangeController;
 use Illuminate\Support\Facades\Route;
@@ -55,7 +56,16 @@ Route::prefix('v1')->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | Mobile Auth: one-time code -> JWT
+    | Mobile Auth: WorkOS code -> Sanctum PAT
+    |--------------------------------------------------------------------------
+    */
+
+    Route::post('/mobile/token', [SanctumTokenController::class, 'store'])
+        ->middleware('throttle:10,1');
+
+    /*
+    |--------------------------------------------------------------------------
+    | Mobile Auth: one-time code -> JWT (DEPRECATED — use /mobile/token)
     |--------------------------------------------------------------------------
     */
 
@@ -63,9 +73,9 @@ Route::prefix('v1')->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | Web session -> JWT
+    | Web session -> JWT (DEPRECATED — Sanctum handles session auth now)
     |--------------------------------------------------------------------------
-    | Used by web frontend; mobile uses exchange endpoint above.
+    | Kept for backwards compatibility until confirmed unused.
     */
 
     Route::middleware('web')->group(function () {
@@ -75,14 +85,17 @@ Route::prefix('v1')->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | Authenticated API (WorkOS JWT)
+    | Authenticated API (Sanctum: session cookie OR Bearer token)
     |--------------------------------------------------------------------------
     */
 
-    Route::middleware('auth.workos')->group(function () {
+    Route::middleware('auth:sanctum')->group(function () {
 
         // Current user
         Route::get('/me', MeController::class);
+
+        // Logout (revoke current PAT)
+        Route::post('/logout', [SanctumTokenController::class, 'destroy']);
 
         /*
         |--------------------------------------------------------------------------

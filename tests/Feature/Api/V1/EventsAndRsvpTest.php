@@ -2,11 +2,11 @@
 
 namespace Tests\Feature\Api\V1;
 
-use App\Http\Middleware\AuthenticateWorkOS;
 use App\Models\Event;
 use App\Models\EventRsvp;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Laravel\Sanctum\Sanctum;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -17,7 +17,7 @@ class EventsAndRsvpTest extends TestCase
     #[Test]
     public function index_returns_paginated_events(): void
     {
-        $this->withoutWorkosAuth();
+        Sanctum::actingAs(User::factory()->create());
 
         Event::factory()->count(3)->create([
             'starts_at' => now()->addDay(),
@@ -32,7 +32,7 @@ class EventsAndRsvpTest extends TestCase
     #[Test]
     public function show_returns_single_event(): void
     {
-        $this->withoutWorkosAuth();
+        Sanctum::actingAs(User::factory()->create());
 
         $event = Event::factory()->create([
             'starts_at' => now()->addDay(),
@@ -46,24 +46,13 @@ class EventsAndRsvpTest extends TestCase
             ->assertJsonPath('data.id', $event->uuid);
     }
 
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        $this->withoutMiddleware(AuthenticateWorkOS::class);
-    }
-
     #[Test]
     public function put_rsvp_is_idempotent_and_returns_resource(): void
     {
-        $this->withoutWorkosAuth();
-
         $user = User::factory()->create();
         $event = Event::factory()->create();
 
-        // If your RSVP controller relies on $request->user(),
-        // actingAs() provides it even if middleware is disabled.
-        $this->actingAs($user);
+        Sanctum::actingAs($user);
 
         $this->putJson("/api/v1/events/{$event->uuid}/rsvp", [
             'status' => 'going',
@@ -85,12 +74,10 @@ class EventsAndRsvpTest extends TestCase
     #[Test]
     public function delete_rsvp_removes_record(): void
     {
-        $this->withoutWorkosAuth();
-
         $user = User::factory()->create();
         $event = Event::factory()->create();
 
-        $this->actingAs($user);
+        Sanctum::actingAs($user);
 
         EventRsvp::factory()->create([
             'user_id' => $user->id,
@@ -110,12 +97,10 @@ class EventsAndRsvpTest extends TestCase
     #[Test]
     public function rsvp_requires_valid_status(): void
     {
-        $this->withoutWorkosAuth();
-
         $user = User::factory()->create();
         $event = Event::factory()->create();
 
-        $this->actingAs($user);
+        Sanctum::actingAs($user);
 
         $this->putJson("/api/v1/events/{$event->uuid}/rsvp", [
             'status' => 'maybe',

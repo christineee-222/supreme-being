@@ -7,13 +7,15 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, UsesBinaryUuidV7;
+    use HasApiTokens, HasFactory, Notifiable, UsesBinaryUuidV7;
 
     public $incrementing = false;
+
     protected $keyType = 'string';
 
     /**
@@ -64,4 +66,3 @@ class User extends Authenticatable
         return in_array($this->role, ['moderator', 'admin'], true);
     }
 }
-

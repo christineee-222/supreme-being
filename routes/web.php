@@ -37,6 +37,46 @@ Route::get('/ballot', fn () => Inertia::render('BallotLookup'))
     ->name('ballot');
 
 /*
+|--------------------------------------------------------------------------
+| Feature Landing Pages (Public)
+|--------------------------------------------------------------------------
+|
+| These are lightweight "Coming soon" pages so the homepage can link to
+| each core feature without 404s. Mutating actions remain behind auth.
+|
+*/
+
+Route::get('/polls', fn () => Inertia::render('ComingSoon', [
+    'feature' => 'Polls',
+    'tagline' => 'Vote on current or potential features, propose ideas and hypothetical legislation, or run your own fun polls.',
+]))->name('polls.index');
+
+Route::get('/forums', fn () => Inertia::render('ComingSoon', [
+    'feature' => 'Forums',
+    'tagline' => 'Go deeper than a vote: ask questions and discuss ideas calmly. Participate with rules and moderation to keep things constructive and welcoming.',
+]))->name('forums.index');
+
+Route::get('/events', fn () => Inertia::render('ComingSoon', [
+    'feature' => 'Events',
+    'tagline' => 'Find gatherings, RSVP, and build momentum in public. Create your own public events or become a sustaining member to create a private events.',
+]))->name('events.index');
+
+Route::get('/portraits', fn () => Inertia::render('ComingSoon', [
+    'feature' => 'Portraits',
+    'tagline' => 'Track public figures and organizations to drive accountability. Transparent profiles and activity histories establish trust and help you make informed decisions about who to support. Verified with sources and public records, not PR teams. Browse existing profiles or request for new ones to be added. If you are the subject of a portrait become a sustaining member to contribute to your profile and share updates directly with your supporters. Fees based on a sliding scale to make it accessible for all public figures, from local activists to global organizations.',
+]))->name('portraits.index');
+
+Route::get('/legislations', fn () => Inertia::render('ComingSoon', [
+    'feature' => 'Legislation',
+    'tagline' => 'Explore proposals, tradeoffs, and impact — and suggest what should exist.',
+]))->name('legislations.index');
+
+Route::get('/support', fn () => Inertia::render('ComingSoon', [
+    'feature' => 'Solidarity Economy',
+    'tagline' => 'Mutual support and transparent funding to sustain the work. Donate to any registered user, browse donation needs, share your own, and see how your contributions are making an impact. Establish barter clubs, community currencies, solidarity markets and fair trade principles in your local community. With permanent records we can establish trust and accountability while building a more egalitarian and equitable economy together.',
+]))->name('support.index');
+
+/*
 | Donations (Public)
 */
 

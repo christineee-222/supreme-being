@@ -12,7 +12,7 @@ class DonationController extends Controller
         $this->authorize('create', Donation::class);
 
         $donation = Donation::create([
-            'user_id' => request()->user()->binaryId(),
+            'user_id' => request()->user()->id,
             // add real fields later
         ]);
 

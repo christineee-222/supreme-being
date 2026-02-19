@@ -13,7 +13,7 @@ class CommentController extends Controller
 
         $forum->comments()->create([
             'body' => $request->validated('body'),
-            'user_id' => $request->user()->binaryId(),
+            'user_id' => $request->user()->id,
         ]);
 
         return back();

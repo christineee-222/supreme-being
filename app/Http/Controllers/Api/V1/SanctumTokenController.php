@@ -119,7 +119,7 @@ final class SanctumTokenController extends Controller
                     $user->email = $email;
                 } else {
                     Log::warning('SanctumToken: email collision, not updating', [
-                        'user_id' => $user->uuid,
+                        'user_id' => $user->id,
                         'workos_email' => $email,
                     ]);
                 }
@@ -133,13 +133,13 @@ final class SanctumTokenController extends Controller
         $token = $user->createToken('civic-mobile')->plainTextToken;
 
         Log::info('SanctumToken: PAT issued', [
-            'user_id' => $user->uuid,
+            'user_id' => $user->id,
         ]);
 
         return response()->json([
             'token' => $token,
             'user' => [
-                'id' => $user->uuid,
+                'id' => $user->id,
                 'email' => $user->email,
                 'name' => $user->name,
             ],

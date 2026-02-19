@@ -12,7 +12,7 @@ class PortraitController extends Controller
         $this->authorize('create', Portrait::class);
 
         $portrait = Portrait::create([
-            'user_id' => request()->user()->binaryId(),
+            'user_id' => request()->user()->id,
             // add real fields later
         ]);
 

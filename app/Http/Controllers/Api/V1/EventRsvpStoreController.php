@@ -14,15 +14,12 @@ final class EventRsvpStoreController extends Controller
     {
         $user = $request->user();
 
-        // Optional policy gate (recommended once you have it)
-        // $this->authorize('create', [EventRsvp::class, $event]);
-
         $status = $request->string('status')->toString();
 
         $rsvp = EventRsvp::query()->updateOrCreate(
             [
-                'user_id' => $user->binaryId(),
-                'event_id' => $event->binaryId(),
+                'user_id' => $user->id,
+                'event_id' => $event->id,
             ],
             [
                 'status' => $status,

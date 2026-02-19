@@ -2,13 +2,13 @@
 
 namespace App\Models;
 
-use App\Models\Concerns\UsesBinaryUuidV7;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class EssenceNumen extends Model
 {
-    use UsesBinaryUuidV7;
+    use HasUuids;
 
     public $incrementing = false;
     protected $keyType = 'string';
@@ -22,4 +22,3 @@ class EssenceNumen extends Model
         return $this->hasOne(Poll::class, 'essence_numen_id');
     }
 }
-

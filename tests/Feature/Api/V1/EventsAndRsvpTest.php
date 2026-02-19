@@ -38,12 +38,12 @@ class EventsAndRsvpTest extends TestCase
             'starts_at' => now()->addDay(),
         ]);
 
-        $this->getJson("/api/v1/events/{$event->uuid}")
+        $this->getJson("/api/v1/events/{$event->id}")
             ->assertOk()
             ->assertJsonStructure([
                 'data' => ['id', 'title', 'starts_at'],
             ])
-            ->assertJsonPath('data.id', $event->uuid);
+            ->assertJsonPath('data.id', $event->id);
     }
 
     #[Test]
@@ -54,20 +54,20 @@ class EventsAndRsvpTest extends TestCase
 
         Sanctum::actingAs($user);
 
-        $this->putJson("/api/v1/events/{$event->uuid}/rsvp", [
+        $this->putJson("/api/v1/events/{$event->id}/rsvp", [
             'status' => 'going',
         ])->assertStatus(201)
             ->assertJsonStructure(['data' => ['id', 'status', 'user_id', 'event_id', 'created_at', 'updated_at']])
             ->assertJsonPath('data.status', 'going');
 
-        $this->putJson("/api/v1/events/{$event->uuid}/rsvp", [
+        $this->putJson("/api/v1/events/{$event->id}/rsvp", [
             'status' => 'interested',
         ])->assertOk()
             ->assertJsonPath('data.status', 'interested');
 
         $this->assertSame(
             1,
-            EventRsvp::where('user_id', $user->binaryId())->where('event_id', $event->binaryId())->count()
+            EventRsvp::where('user_id', $user->id)->where('event_id', $event->id)->count()
         );
     }
 
@@ -85,12 +85,12 @@ class EventsAndRsvpTest extends TestCase
             'status' => 'going',
         ]);
 
-        $this->deleteJson("/api/v1/events/{$event->uuid}/rsvp")
+        $this->deleteJson("/api/v1/events/{$event->id}/rsvp")
             ->assertOk();
 
         $this->assertDatabaseMissing('event_rsvps', [
-            'user_id' => $user->binaryId(),
-            'event_id' => $event->binaryId(),
+            'user_id' => $user->id,
+            'event_id' => $event->id,
         ]);
     }
 
@@ -102,7 +102,7 @@ class EventsAndRsvpTest extends TestCase
 
         Sanctum::actingAs($user);
 
-        $this->putJson("/api/v1/events/{$event->uuid}/rsvp", [
+        $this->putJson("/api/v1/events/{$event->id}/rsvp", [
             'status' => 'maybe',
         ])->assertStatus(422);
     }

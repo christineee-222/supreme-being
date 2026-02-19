@@ -30,8 +30,8 @@ class EventRsvpControllerTest extends TestCase
 
         $response->assertCreated();
         $this->assertDatabaseHas('event_rsvps', [
-            'user_id' => $user->binaryId(),
-            'event_id' => $event->binaryId(),
+            'user_id' => $user->id,
+            'event_id' => $event->id,
             'status' => 'going',
         ]);
     }
@@ -74,13 +74,13 @@ class EventRsvpControllerTest extends TestCase
 
         $response = $this
             ->actingAs($user)
-            ->patchJson("/events/{$event->slug}/rsvps/{$rsvp->uuid}", [
+            ->patchJson("/events/{$event->slug}/rsvps/{$rsvp->id}", [
                 'status' => 'going',
             ]);
 
         $response->assertOk();
         $this->assertDatabaseHas('event_rsvps', [
-            'id' => $rsvp->binaryId(),
+            'id' => $rsvp->id,
             'status' => 'going',
         ]);
     }
@@ -101,7 +101,7 @@ class EventRsvpControllerTest extends TestCase
 
         $response = $this
             ->actingAs($intruder)
-            ->patchJson("/events/{$event->slug}/rsvps/{$rsvp->uuid}", [
+            ->patchJson("/events/{$event->slug}/rsvps/{$rsvp->id}", [
                 'status' => 'going',
             ]);
 
@@ -123,11 +123,11 @@ class EventRsvpControllerTest extends TestCase
 
         $response = $this
             ->actingAs($user)
-            ->deleteJson("/events/{$event->slug}/rsvps/{$rsvp->uuid}");
+            ->deleteJson("/events/{$event->slug}/rsvps/{$rsvp->id}");
 
         $response->assertOk();
         $this->assertDatabaseMissing('event_rsvps', [
-            'id' => $rsvp->binaryId(),
+            'id' => $rsvp->id,
         ]);
     }
 }

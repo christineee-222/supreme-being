@@ -243,7 +243,7 @@ final class WorkOSAuthController extends Controller
 
                 if ($emailTaken) {
                     Log::warning('WorkOS email differs but new email already belongs to another user; not updating email', [
-                        'user_id' => $user->uuid ?? (string) $user->id,
+                        'user_id' => $user->id,
                         'workos_id' => $workosId,
                         'current_email' => $user->email,
                         'workos_email' => $email,
@@ -296,7 +296,7 @@ final class WorkOSAuthController extends Controller
         }
 
         Log::info('WorkOS callback completed', [
-            'user_id' => $user->uuid,
+            'user_id' => $user->id,
             'mobile_detected' => $isMobile,
             'mobile_return_to' => session('mobile.return_to'),
             'intended' => session('url.intended'),

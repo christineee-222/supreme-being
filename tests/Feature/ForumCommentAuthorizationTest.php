@@ -26,8 +26,8 @@ class ForumCommentAuthorizationTest extends TestCase
         $response->assertRedirect();
         $this->assertDatabaseHas('comments', [
             'body' => 'Admin comment',
-            'forum_id' => $forum->binaryId(),
-            'user_id' => $admin->binaryId(),
+            'forum_id' => $forum->id,
+            'user_id' => $admin->id,
         ]);
     }
 
@@ -62,8 +62,8 @@ class ForumCommentAuthorizationTest extends TestCase
         $response->assertRedirect();
         $this->assertDatabaseHas('comments', [
             'body' => 'Allowed comment',
-            'forum_id' => $forum->binaryId(),
-            'user_id' => $user->binaryId(),
+            'forum_id' => $forum->id,
+            'user_id' => $user->id,
         ]);
     }
 }

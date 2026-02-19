@@ -14,18 +14,15 @@ final class EventShowController extends Controller
     {
         $user = $request->user();
 
-        // Manual query for viewer-specific RSVP (avoids HasOne PK mismatch)
         $rsvp = $user
             ? EventRsvp::query()
-                ->where('event_id', $event->binaryId())
-                ->where('user_id', $user->binaryId())
+                ->where('event_id', $event->id)
+                ->where('user_id', $user->id)
                 ->first()
             : null;
 
-        // Preserve whenLoaded() compatibility in EventResource
         $event->setRelation('rsvpForViewer', $rsvp);
 
-        // Flattened RSVP status for mobile convenience
         $event->rsvp_status = $rsvp?->status;
 
         return EventResource::make($event);

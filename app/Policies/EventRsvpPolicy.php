@@ -25,8 +25,8 @@ class EventRsvpPolicy
             return false;
         }
 
-        return ! EventRsvp::where('user_id', $user->binaryId())
-            ->where('event_id', $event->binaryId())
+        return ! EventRsvp::where('user_id', $user->id)
+            ->where('event_id', $event->id)
             ->exists();
     }
 
@@ -40,7 +40,7 @@ class EventRsvpPolicy
         }
 
         return
-            $rsvp->user_id === $user->binaryId() &&
+            $rsvp->user_id === $user->id &&
             ! $rsvp->event->hasStarted();
     }
 
@@ -54,7 +54,7 @@ class EventRsvpPolicy
         }
 
         return
-            $rsvp->user_id === $user->binaryId() &&
+            $rsvp->user_id === $user->id &&
             ! $rsvp->event->hasStarted();
     }
 }

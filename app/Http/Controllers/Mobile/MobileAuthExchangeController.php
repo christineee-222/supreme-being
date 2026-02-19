@@ -45,9 +45,9 @@ final class MobileAuthExchangeController extends Controller
             ], 404);
         }
 
-        // Load the user (cached value is a UUID string; convert to binary for lookup)
+        // Load the user (cached value is a UUID string; now stored as CHAR(36))
         $user = \App\Models\User::query()
-            ->where('id', \Symfony\Component\Uid\Uuid::fromString($userId)->toBinary())
+            ->where('id', $userId)
             ->first();
 
         if (! $user) {
@@ -86,7 +86,7 @@ final class MobileAuthExchangeController extends Controller
         $jwt = JWT::encode($payload, $privateKey, 'RS256');
 
         Log::info('Mobile exchange: JWT issued', [
-            'user_id' => $user->uuid,
+            'user_id' => $user->id,
             'workos_id' => $user->workos_id,
         ]);
 

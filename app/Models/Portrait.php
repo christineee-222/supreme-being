@@ -2,15 +2,14 @@
 
 namespace App\Models;
 
-use App\Casts\BinaryUuidFk;
 use App\Models\Concerns\HasUniqueSlug;
-use App\Models\Concerns\UsesBinaryUuidV7;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Portrait extends Model
 {
-    use HasUniqueSlug, UsesBinaryUuidV7;
+    use HasUniqueSlug, HasUuids;
 
     public $incrementing = false;
     protected $keyType = 'string';
@@ -22,14 +21,6 @@ class Portrait extends Model
         'user_id',
         'essence_numen_id',
     ];
-
-    protected function casts(): array
-    {
-        return [
-            'user_id' => BinaryUuidFk::class,
-            'essence_numen_id' => BinaryUuidFk::class,
-        ];
-    }
 
     public function user(): BelongsTo
     {
@@ -54,4 +45,3 @@ class Portrait extends Model
         });
     }
 }
-

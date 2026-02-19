@@ -75,9 +75,9 @@ class EventApiTest extends TestCase
 
         $token = $this->mintToken($user);
 
-        $this->getJson("/api/v1/events/{$event->uuid}", ['Authorization' => 'Bearer '.$token])
+        $this->getJson("/api/v1/events/{$event->id}", ['Authorization' => 'Bearer '.$token])
             ->assertOk()
-            ->assertJsonPath('data.rsvp.id', $rsvp->uuid);
+            ->assertJsonPath('data.rsvp.id', $rsvp->id);
     }
 
     public function test_event_create_requires_auth(): void
@@ -115,7 +115,7 @@ class EventApiTest extends TestCase
 
         $token = $this->mintToken($other);
 
-        $this->patchJson("/api/v1/events/{$event->uuid}", [
+        $this->patchJson("/api/v1/events/{$event->id}", [
             'title' => 'Edited Title',
         ], ['Authorization' => 'Bearer '.$token])
             ->assertStatus(403);
@@ -132,7 +132,7 @@ class EventApiTest extends TestCase
 
         $token = $this->mintToken($owner);
 
-        $this->patchJson("/api/v1/events/{$event->uuid}", [
+        $this->patchJson("/api/v1/events/{$event->id}", [
             'title' => 'Updated Title',
         ], ['Authorization' => 'Bearer '.$token])
             ->assertOk()
@@ -150,7 +150,7 @@ class EventApiTest extends TestCase
 
         $token = $this->mintToken($owner);
 
-        $this->patchJson("/api/v1/events/{$event->uuid}", [
+        $this->patchJson("/api/v1/events/{$event->id}", [
             'title' => 'Should Not Update',
         ], ['Authorization' => 'Bearer '.$token])
             ->assertStatus(403);
@@ -169,7 +169,7 @@ class EventApiTest extends TestCase
 
         $token = $this->mintToken($other);
 
-        $this->postJson("/api/v1/events/{$event->uuid}/cancel", [], ['Authorization' => 'Bearer '.$token])
+        $this->postJson("/api/v1/events/{$event->id}/cancel", [], ['Authorization' => 'Bearer '.$token])
             ->assertStatus(403);
     }
 
@@ -185,7 +185,7 @@ class EventApiTest extends TestCase
 
         $token = $this->mintToken($owner);
 
-        $this->postJson("/api/v1/events/{$event->uuid}/cancel", [], ['Authorization' => 'Bearer '.$token])
+        $this->postJson("/api/v1/events/{$event->id}/cancel", [], ['Authorization' => 'Bearer '.$token])
             ->assertOk()
             ->assertJsonPath('data.status', 'cancelled')
             ->assertJsonStructure([
@@ -207,7 +207,7 @@ class EventApiTest extends TestCase
 
         $token = $this->mintToken($owner);
 
-        $this->postJson("/api/v1/events/{$event->uuid}/cancel", [], ['Authorization' => 'Bearer '.$token])
+        $this->postJson("/api/v1/events/{$event->id}/cancel", [], ['Authorization' => 'Bearer '.$token])
             ->assertStatus(403);
     }
 
@@ -258,7 +258,7 @@ class EventApiTest extends TestCase
 
         $token = $this->mintToken($user);
 
-        $this->getJson("/api/v1/events/{$event->uuid}", ['Authorization' => 'Bearer '.$token])
+        $this->getJson("/api/v1/events/{$event->id}", ['Authorization' => 'Bearer '.$token])
             ->assertOk()
             ->assertJsonStructure([
                 'data' => [
@@ -278,7 +278,7 @@ class EventApiTest extends TestCase
 
         $token = $this->mintToken($user);
 
-        $this->getJson("/api/v1/events/{$event->uuid}", ['Authorization' => 'Bearer '.$token])
+        $this->getJson("/api/v1/events/{$event->id}", ['Authorization' => 'Bearer '.$token])
             ->assertOk()
             ->assertJsonPath('data.rsvp', null);
     }

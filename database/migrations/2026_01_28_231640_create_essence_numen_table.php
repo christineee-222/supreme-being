@@ -13,7 +13,7 @@ return new class extends Migration
         }
 
         Schema::create('essence_numen', function (Blueprint $table) {
-            $table->binary('id', 16)->primary();
+            $table->uuid('id')->primary();
             $table->string('type');
             $table->timestamps();
         });

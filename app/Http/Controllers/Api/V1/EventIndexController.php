@@ -29,18 +29,17 @@ final class EventIndexController extends Controller
             ->orderBy('starts_at', 'asc')
             ->paginate($perPage);
 
-        // Manually attach viewer-specific RSVP data (avoids HasOne PK mismatch)
         if ($user) {
-            $eventIds = $events->getCollection()->map->binaryId()->all();
+            $eventIds = $events->getCollection()->pluck('id')->all();
 
             $rsvps = EventRsvp::query()
-                ->where('user_id', $user->binaryId())
+                ->where('user_id', $user->id)
                 ->whereIn('event_id', $eventIds)
                 ->get()
-                ->keyBy(fn (EventRsvp $r) => $r->event_id);
+                ->keyBy('event_id');
 
             $events->getCollection()->transform(function (Event $event) use ($rsvps) {
-                $rsvp = $rsvps->get($event->binaryId());
+                $rsvp = $rsvps->get($event->id);
                 $event->setRelation('rsvpForViewer', $rsvp);
                 $event->rsvp_status = $rsvp?->status;
 

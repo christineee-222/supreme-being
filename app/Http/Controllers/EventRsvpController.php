@@ -18,15 +18,14 @@ class EventRsvpController extends Controller
 
         $rsvp = EventRsvp::updateOrCreate(
             [
-                'event_id' => $event->binaryId(),
-                'user_id' => $request->user()->binaryId(),
+                'event_id' => $event->id,
+                'user_id' => $request->user()->id,
             ],
             [
                 'status' => $request->validated('status'),
             ]
         );
 
-        // ✅ Inertia expects a redirect / Inertia response, not plain JSON
         if ($request->header('X-Inertia')) {
             return redirect()->back();
         }
@@ -43,7 +42,6 @@ class EventRsvpController extends Controller
 
         $rsvp->update($request->validated());
 
-        // ✅ Same rule for Inertia
         if ($request->header('X-Inertia')) {
             return redirect()->back();
         }
@@ -57,7 +55,6 @@ class EventRsvpController extends Controller
 
         $rsvp->delete();
 
-        // ✅ Same rule for Inertia
         if ($request->header('X-Inertia')) {
             return redirect()->back();
         }
@@ -67,5 +64,3 @@ class EventRsvpController extends Controller
         ]);
     }
 }
-
-

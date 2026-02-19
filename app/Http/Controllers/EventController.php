@@ -7,39 +7,36 @@ use App\Models\EventRsvp;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
-use Symfony\Component\Uid\Uuid;
 
 class EventController extends Controller
 {
     public function show(Request $request, Event $event): Response
     {
-        // ✅ Running tally (public)
         $rsvpsCount = EventRsvp::query()
-            ->where('event_id', $event->binaryId())
+            ->where('event_id', $event->id)
             ->count();
 
-        // ✅ Only compute user RSVP if logged in (otherwise guest-safe)
         $userRsvp = null;
 
         if ($request->user()) {
             $rsvp = EventRsvp::query()
-                ->where('event_id', $event->binaryId())
-                ->where('user_id', $request->user()->binaryId())
+                ->where('event_id', $event->id)
+                ->where('user_id', $request->user()->id)
                 ->first();
 
             if ($rsvp) {
                 $userRsvp = [
-                    'id' => $rsvp->uuid,
+                    'id' => $rsvp->id,
                     'status' => $rsvp->status,
-                    'user_id' => Uuid::fromBinary($rsvp->user_id)->toRfc4122(),
-                    'event_id' => $event->uuid,
+                    'user_id' => $rsvp->user_id,
+                    'event_id' => $event->id,
                 ];
             }
         }
 
         return Inertia::render('Events/Show', [
             'event' => [
-                'id' => $event->uuid,
+                'id' => $event->id,
                 'title' => $event->title,
                 'description' => $event->description,
                 'status' => $event->status,
@@ -57,7 +54,7 @@ class EventController extends Controller
             ->take(25)
             ->get()
             ->map(fn (Event $event) => [
-                'id' => $event->uuid,
+                'id' => $event->id,
                 'title' => $event->title,
                 'status' => $event->status,
                 'starts_at' => $event->starts_at,
@@ -73,9 +70,7 @@ class EventController extends Controller
         $this->authorize('create', Event::class);
 
         $event = Event::create([
-            'user_id' => $request->user()->binaryId(),
-            // title is required in DB, so either provide one here or create events via UI/tinker
-            // 'title' => 'New Event',
+            'user_id' => $request->user()->id,
         ]);
 
         return response()->json($event);
@@ -90,5 +85,3 @@ class EventController extends Controller
         return response()->json(['status' => 'authorized']);
     }
 }
-
-

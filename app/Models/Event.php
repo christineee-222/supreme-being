@@ -2,9 +2,8 @@
 
 namespace App\Models;
 
-use App\Casts\BinaryUuidFk;
 use App\Models\Concerns\HasUniqueSlug;
-use App\Models\Concerns\UsesBinaryUuidV7;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -12,11 +11,10 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
-use Symfony\Component\Uid\Uuid;
 
 class Event extends Model
 {
-    use HasFactory, HasUniqueSlug, UsesBinaryUuidV7;
+    use HasFactory, HasUniqueSlug, HasUuids;
 
     public $incrementing = false;
     protected $keyType = 'string';
@@ -34,24 +32,10 @@ class Event extends Model
     protected function casts(): array
     {
         return [
-            'user_id' => BinaryUuidFk::class,
-            'essence_numen_id' => BinaryUuidFk::class,
             'starts_at' => 'datetime',
             'ends_at' => 'datetime',
             'cancelled_at' => 'datetime',
         ];
-    }
-
-    public function resolveRouteBinding($value, $field = null)
-    {
-        // Bind /events/{uuid-string} to binary(16) primary key
-        try {
-            $binary = Uuid::fromString($value)->toBinary();
-        } catch (\Throwable $e) {
-            return null;
-        }
-
-        return $this->newQuery()->where($this->getKeyName(), $binary)->first();
     }
 
     public function user(): BelongsTo
@@ -71,7 +55,7 @@ class Event extends Model
 
     public function rsvpForViewer(): HasOne
     {
-        return $this->hasOne(EventRsvp::class)->where('user_id', Auth::user()?->binaryId());
+        return $this->hasOne(EventRsvp::class)->where('user_id', Auth::id());
     }
 
     public function hasStarted(): bool
@@ -107,5 +91,3 @@ class Event extends Model
         });
     }
 }
-
-

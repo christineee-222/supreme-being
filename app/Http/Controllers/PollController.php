@@ -22,7 +22,7 @@ class PollController extends Controller
         ]);
 
         $poll = Poll::create([
-            'user_id' => request()->user()->binaryId(),
+            'user_id' => request()->user()->id,
             'title' => $data['title'],
             'description' => $data['description'] ?? null,
             'status' => 'open', // MVP: open immediately
@@ -64,12 +64,12 @@ class PollController extends Controller
         abort_if($poll->ends_at && now()->greaterThan($poll->ends_at), 422, 'Poll has ended.');
 
         $data = $request->validate([
-            'option_id' => ['required', 'string', Rule::exists('poll_options', 'id')->where('poll_id', $poll->binaryId())],
+            'option_id' => ['required', 'string', Rule::exists('poll_options', 'id')->where('poll_id', $poll->id)],
         ]);
 
         // MVP: allow changing vote (update-or-create)
         $poll->votes()->updateOrCreate(
-            ['user_id' => request()->user()->binaryId()],
+            ['user_id' => request()->user()->id],
             ['poll_option_id' => $data['option_id']]
         );
 

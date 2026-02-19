@@ -13,7 +13,7 @@ final class MeController extends Controller
         $user = $request->user();
 
         return JsonResource::make([
-            'id' => $user->uuid,
+            'id' => $user->id,
             'email' => $user->email,
             'workos_id' => $user->workos_id,
         ]);

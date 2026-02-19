@@ -12,13 +12,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('comments', function (Blueprint $table) {
-            $table->binary('id', 16)->primary();
+            $table->uuid('id')->primary();
 
-            $table->binary('user_id', 16)->index();
-            $table->foreign('user_id')->references('id')->on('users')->cascadeOnDelete();
+            $table->foreignUuid('user_id')->constrained()->cascadeOnDelete();
 
-            $table->binary('forum_id', 16)->index();
-            $table->foreign('forum_id')->references('id')->on('forums')->cascadeOnDelete();
+            $table->foreignUuid('forum_id')->constrained()->cascadeOnDelete();
 
             $table->text('body');
 

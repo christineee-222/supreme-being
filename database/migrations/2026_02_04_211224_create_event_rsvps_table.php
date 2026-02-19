@@ -12,13 +12,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('event_rsvps', function (Blueprint $table) {
-            $table->binary('id', 16)->primary();
+            $table->uuid('id')->primary();
 
-            $table->binary('user_id', 16)->index();
-            $table->foreign('user_id')->references('id')->on('users')->cascadeOnDelete();
+            $table->foreignUuid('user_id')->constrained()->cascadeOnDelete();
 
-            $table->binary('event_id', 16)->index();
-            $table->foreign('event_id')->references('id')->on('events')->cascadeOnDelete();
+            $table->foreignUuid('event_id')->constrained()->cascadeOnDelete();
 
             $table->string('status')->default('going');
 

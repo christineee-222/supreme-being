@@ -37,7 +37,7 @@ class SanctumTokenTest extends TestCase
 
         $this->getJson('/api/v1/me')
             ->assertOk()
-            ->assertJsonPath('data.id', $user->uuid);
+            ->assertJsonPath('data.id', $user->id);
     }
 
     #[Test]

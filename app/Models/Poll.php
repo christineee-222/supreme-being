@@ -2,16 +2,15 @@
 
 namespace App\Models;
 
-use App\Casts\BinaryUuidFk;
 use App\Models\Concerns\HasUniqueSlug;
-use App\Models\Concerns\UsesBinaryUuidV7;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Poll extends Model
 {
-    use HasFactory, HasUniqueSlug, UsesBinaryUuidV7;
+    use HasFactory, HasUniqueSlug, HasUuids;
 
     public $incrementing = false;
     protected $keyType = 'string';
@@ -25,14 +24,6 @@ class Poll extends Model
         'user_id',
         'essence_numen_id',
     ];
-
-    protected function casts(): array
-    {
-        return [
-            'user_id' => BinaryUuidFk::class,
-            'essence_numen_id' => BinaryUuidFk::class,
-        ];
-    }
 
     public function user(): BelongsTo
     {
@@ -57,4 +48,3 @@ class Poll extends Model
         });
     }
 }
-

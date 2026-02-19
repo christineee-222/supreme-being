@@ -16,7 +16,7 @@ final class MobileAuthCompleteController
         try {
             Log::info('MobileAuthComplete: start', [
                 'authenticated' => auth()->check(),
-                'user_id' => auth()->user()?->uuid,
+                'user_id' => auth()->user()?->id,
                 'session_id' => $request->session()->getId(),
             ]);
 
@@ -55,13 +55,13 @@ final class MobileAuthCompleteController
 
             Cache::put(
                 "mobile_auth_code:{$code}",
-                auth()->user()->uuid,
+                auth()->user()->id,
                 now()->addMinutes(5) // slightly longer to avoid race issues
             );
 
             Log::info('MobileAuthComplete: auth code generated', [
                 'code_length' => strlen($code),
-                'user_id' => auth()->user()->uuid,
+                'user_id' => auth()->user()->id,
             ]);
 
             // Build deep link

@@ -28,7 +28,13 @@ export default function ComingSoon({ feature, tagline, description }: Props) {
               {description ??
                 "This part of Assembly Required is actively being built. The goal isn’t just another feature — it’s a space where community voice, civic understanding, and collective action can grow together."}
             </p>
-
+            <div className="mt-8 flex justify-center">
+              <img
+                src="/thinkerrr.png"
+                alt="Assembly Required logo"
+                className="w-72 lg:w-96 rounded-3xl dark:invert"
+              />
+            </div>
             <div className="mt-8 rounded-2xl border border-black/10 bg-[#FDFDFC] p-4 text-xs text-black/60 dark:border-white/10 dark:bg-[#0f0f0f] dark:text-white/60">
               Built in public. Feedback, ideas, and curiosity are always welcome.
             </div>

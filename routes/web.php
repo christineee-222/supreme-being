@@ -36,6 +36,9 @@ Route::get('/topics/ballot-measures', fn () => Inertia::render('ballot-measures-
 Route::get('/ballot', fn () => Inertia::render('BallotLookup'))
     ->name('ballot');
 
+Route::get('/events/{event}', [EventController::class, 'show'])
+        ->name('events.show');
+
 /*
 |--------------------------------------------------------------------------
 | Feature Landing Pages (Public)
@@ -56,10 +59,8 @@ Route::get('/forums', fn () => Inertia::render('ComingSoon', [
     'tagline' => 'Go deeper than a vote: ask questions and discuss ideas calmly. Participate with rules and moderation to keep things constructive and welcoming.',
 ]))->name('forums.index');
 
-Route::get('/events', fn () => Inertia::render('ComingSoon', [
-    'feature' => 'Events',
-    'tagline' => 'Find gatherings, RSVP, and build momentum in public. Create your own public events or become a sustaining member to create a private events.',
-]))->name('events.index');
+Route::get('/events', [EventController::class, 'index'])
+    ->name('events.index');
 
 Route::get('/portraits', fn () => Inertia::render('ComingSoon', [
     'feature' => 'Portraits',
@@ -128,9 +129,6 @@ Route::middleware(['auth'])->group(function () {
         return Inertia::render('dashboard');
     })->name('dashboard');
 
-    Route::get('/events/{event}', [EventController::class, 'show'])
-        ->name('events.show');
-
     /*
     | API Token Exchange (Web → JWT)  (NOTE: You may remove/replace when switching fully to Sanctum)
     */
@@ -142,7 +140,6 @@ Route::middleware(['auth'])->group(function () {
     */
     Route::resource('polls', PollController::class)->only(['store', 'update', 'destroy']);
     Route::resource('donations', DonationController::class)->only(['store', 'update', 'destroy']);
-    Route::resource('events', EventController::class)->only(['show', 'store', 'update', 'destroy']);
     Route::resource('forums', ForumController::class)->only(['store', 'update', 'destroy']);
     Route::resource('portraits', PortraitController::class)->only(['store', 'update', 'destroy']);
     Route::resource('legislations', LegislationController::class)->only(['store', 'update', 'destroy']);

@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Symfony\Component\Uid\Uuid;
 
 class Event extends Model
 {
@@ -39,6 +40,18 @@ class Event extends Model
             'ends_at' => 'datetime',
             'cancelled_at' => 'datetime',
         ];
+    }
+
+    public function resolveRouteBinding($value, $field = null)
+    {
+        // Bind /events/{uuid-string} to binary(16) primary key
+        try {
+            $binary = Uuid::fromString($value)->toBinary();
+        } catch (\Throwable $e) {
+            return null;
+        }
+
+        return $this->newQuery()->where($this->getKeyName(), $binary)->first();
     }
 
     public function user(): BelongsTo
@@ -94,4 +107,5 @@ class Event extends Model
         });
     }
 }
+
 

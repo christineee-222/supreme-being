@@ -292,7 +292,7 @@ created_at / updated_at
 
 ```
 id              char(36) PK
-moderator_id    char(36) FK → users.id, CASCADE on delete
+moderator_id    char(36) FK → users.id, SET NULL on delete, nullable
 report_id       char(36) FK → reports.id, CASCADE on delete
 decision        ENUM('confirmed','dismissed','escalated')
 requires_cosign boolean default(false)
@@ -304,9 +304,10 @@ created_at      timestamp   -- no updated_at; append-only
 **Indexes:** `(moderator_id, created_at)`, `report_id`
 
 **Notes:**
-- Immutable — no update routes or methods
+- Append-only with one permitted exception: `cosigned_by` and `cosigned_at` are completion fields — they start null and are filled in when an admin cosigns. These are the only two fields that may be written after creation. The decision content (`decision`, `requires_cosign`, `moderator_id`, `report_id`) is permanently immutable.
 - `ReportService::resolveReport()` creates the decision first, then passes it to `ViolationService::confirmViolation()`
 - A moderator cannot be assigned or resolve a report filed against themselves
+- Cosign count for probation lift must be queried from `moderator_decisions` where `cosigned_at IS NOT NULL` — do not use JSON metadata queries for this
 
 ---
 
@@ -317,7 +318,7 @@ created_at      timestamp   -- no updated_at; append-only
 
 ```
 id                    char(36) PK
-user_id               char(36) FK → users.id, CASCADE on delete
+user_id               char(36) FK → users.id, SET NULL on delete, nullable
 report_id             char(36) FK → reports.id, SET NULL on delete, nullable
 moderator_decision_id char(36) FK → moderator_decisions.id, CASCADE on delete, UNIQUE
 confirmed_by          char(36) FK → users.id, SET NULL on delete, nullable
@@ -345,7 +346,7 @@ created_at / updated_at
 
 ```
 id                  char(36) PK
-user_id             char(36) FK → users.id, CASCADE on delete
+user_id             char(36) FK → users.id, SET NULL on delete, nullable
 appeal_number       tinyInteger unsigned
 user_statement      text
 status              ENUM('pending','under_review','approved','denied') default('pending')
@@ -381,7 +382,7 @@ created_at / updated_at
 
 ```
 id                      char(36) PK
-user_id                 char(36) FK → users.id, CASCADE on delete, UNIQUE
+user_id                 char(36) FK → users.id, SET NULL on delete, nullable, UNIQUE
 motivation              text
 scenario_response_1     text
 scenario_response_2     text
@@ -404,7 +405,7 @@ created_at / updated_at
 
 ```
 id              char(36) PK
-moderator_id    char(36) FK → users.id, CASCADE on delete
+moderator_id    char(36) FK → users.id, SET NULL on delete, nullable
 report_id       char(36) FK → reports.id, CASCADE on delete
 status          ENUM('pending','reviewed') default('pending')
 admin_outcome   ENUM('no_action','warning_issued','role_revoked') nullable
@@ -645,7 +646,7 @@ Eligibility rules:
 - Use strict comparison (`=== null`) when checking timestamps.
 - Permanent ineligibility occurs **only** when `next_appeal_eligible_at === null`.
 - `appeal_count` is historical/numbering only; do not use it in eligibility checks.
-- Implementation must follow the eligibility rules defined in TASK 4 exactly.
+- Implementation must follow the eligibility rules defined in TASK 5 exactly.
 
 `submitAppeal(User $user, string $statement): Appeal`
 - Calls `checkEligibility()`, throws `AppealNotEligibleException` with earliest date if not eligible
@@ -753,7 +754,7 @@ Route::middleware(['auth'])->group(function () {
 
 ## 10. What Claude Code Should NOT Do
 
-- **Do not** modify any existing migration files
+- **Do not** hard-delete user accounts — "delete profile" must be implemented as deactivation or soft-delete; moderation history, violations, and audit records must be retained. This is required for ban enforcement integrity and future cross-referencing of repeat offenders.
 - **Do not** drop or recreate the `users`, `sessions`, or `jobs` tables
 - **Do not** use `binary(16)` for any ID column — all IDs are `char(36)`
 - **Do not** use `morphs()` helper — define polymorphic columns manually
@@ -772,7 +773,7 @@ Route::middleware(['auth'])->group(function () {
 - **Do not** use PHP 8.3, 8.4, or 8.5-specific features — code must be PHP ≥ 8.2 compatible
 - **Do not** place moderation routes in `routes/web.php` — use `routes/moderation.php`
 - **Do not** use Observers or Event Listeners for the audit log — call `ModerationEventService::log()` explicitly inside transactions
-- **Do not** add update or delete logic for `moderation_events` or `moderator_decisions` — both are immutable
+- **Do not** add update or delete logic for `moderation_events` — it is fully immutable. `moderator_decisions` is append-only with one exception: `cosigned_by` and `cosigned_at` may be written once as completion fields when an admin cosigns. No other fields on `moderator_decisions` may be updated.
 
 ---
 
@@ -798,3 +799,5 @@ Route::middleware(['auth'])->group(function () {
 - Moderator cannot assign or resolve a report filed against themselves
 - `ReportCreated` event dispatched after commit (verify via event fake)
 - Every state-changing service method produces a corresponding `moderation_events` row inside the same transaction
+
+

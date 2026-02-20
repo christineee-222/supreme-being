@@ -42,5 +42,27 @@ class UserFactory extends Factory
             'role' => 'moderator',
         ]);
     }
-}
 
+    public function probationaryModerator(): static
+    {
+        return $this->state(fn () => [
+            'role' => 'moderator',
+            'is_moderator_probationary' => true,
+        ]);
+    }
+
+    public function restricted(): static
+    {
+        return $this->state(fn () => [
+            'restriction_ends_at' => now()->addDays(7),
+        ]);
+    }
+
+    public function indefinitelyRestricted(): static
+    {
+        return $this->state(fn () => [
+            'is_indefinitely_restricted' => true,
+            'restriction_ends_at' => null,
+        ]);
+    }
+}

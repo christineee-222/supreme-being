@@ -37,10 +37,12 @@ class EventController extends Controller
         return Inertia::render('Events/Show', [
             'event' => [
                 'id' => $event->id,
+                'slug' => $event->slug,
                 'title' => $event->title,
                 'description' => $event->description,
                 'status' => $event->status,
-                'starts_at' => $event->starts_at,
+                'starts_at' => optional($event->starts_at)->toISOString(),
+                'ends_at' => optional($event->ends_at)->toISOString(),
                 'rsvps_count' => $rsvpsCount,
             ],
             'userRsvp' => $userRsvp,
@@ -49,15 +51,31 @@ class EventController extends Controller
 
     public function index(): Response
     {
+        // Ordering goals:
+        // 1) Upcoming scheduled first (soonest first)
+        // 2) Past scheduled after upcoming
+        // 3) Draft (no date / not ready) after scheduled
+        // 4) Cancelled last
         $events = Event::query()
-            ->latest()
             ->take(25)
+            ->orderByRaw("
+                CASE
+                    WHEN status = 'cancelled' THEN 3
+                    WHEN status = 'draft' OR starts_at IS NULL THEN 2
+                    WHEN starts_at < NOW() THEN 1
+                    ELSE 0
+                END ASC
+            ")
+            // Within each group: put real dated events first, then sort by starts_at
+            ->orderByRaw("starts_at IS NULL ASC")
+            ->orderBy('starts_at', 'asc')
             ->get()
             ->map(fn (Event $event) => [
                 'id' => $event->id,
+                'slug' => $event->slug,
                 'title' => $event->title,
                 'status' => $event->status,
-                'starts_at' => $event->starts_at,
+                'starts_at' => optional($event->starts_at)->toISOString(),
             ]);
 
         return Inertia::render('Events/Index', [

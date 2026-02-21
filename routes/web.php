@@ -156,6 +156,9 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/events/{event}/rsvps/{rsvp}', [EventRsvpController::class, 'destroy'])
         ->name('events.rsvps.destroy');
 
+    Route::delete('/events/{event}/rsvps', [EventRsvpController::class, 'destroyMine'])
+        ->name('events.rsvps.destroyMine');
+
     /*
     | Misc Actions
     */

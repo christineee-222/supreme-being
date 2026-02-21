@@ -66,15 +66,21 @@ function statusPill(status: string | null) {
   }
 }
 
-export default function Show({ event, userRsvp }: Props) {
+export default function Show({ event: eventData, userRsvp }: Props) {
   const { auth } = usePage<SharedData>().props;
   const [processing, setProcessing] = React.useState(false);
 
   const currentStatus = userRsvp?.status ?? null;
 
+  const rsvpLabels: Record<string, string> = {
+    going: 'Going',
+    interested: 'Interested',
+    not_going: "Can’t make it",
+  };
+
   function rsvp(status: 'going' | 'interested' | 'not_going') {
     router.post(
-      `/events/${event.slug}/rsvps`,
+      `/events/${eventData.slug}/rsvps`,
       { status },
       {
         preserveScroll: true,
@@ -86,7 +92,7 @@ export default function Show({ event, userRsvp }: Props) {
 
   return (
     <>
-      <Head title={event.title}>
+      <Head title={eventData.title}>
         <link rel="preconnect" href="https://fonts.bunny.net" />
         <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600" rel="stylesheet" />
       </Head>
@@ -109,7 +115,7 @@ export default function Show({ event, userRsvp }: Props) {
             </div>
 
             <div className="flex items-center gap-3">
-              {statusPill(event.status)}
+              {statusPill(eventData.status)}
               <Link
                 href="/"
                 className="rounded-xl border border-black/10 bg-white px-4 py-2 text-sm font-medium shadow-sm hover:bg-black/5 dark:border-white/10 dark:bg-[#161615] dark:hover:bg-white/5"
@@ -123,27 +129,25 @@ export default function Show({ event, userRsvp }: Props) {
           <section className="mt-6 rounded-3xl border border-black/10 bg-white p-8 shadow-sm dark:border-white/10 dark:bg-[#161615] lg:p-12">
             <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
               <div className="min-w-0">
-                <h1 className="text-2xl font-semibold tracking-tight lg:text-4xl">{event.title}</h1>
+                <h1 className="text-2xl font-semibold tracking-tight lg:text-4xl">{eventData.title}</h1>
 
                 <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-black/60 dark:text-white/60">
                   <div className="rounded-2xl border border-black/10 bg-[#FDFDFC] px-3 py-2 dark:border-white/10 dark:bg-[#0f0f0f]">
                     <div className="text-xs font-semibold text-black/60 dark:text-white/60">Starts</div>
                     <div className="mt-1 font-medium text-black/70 dark:text-white/70">
-                      {formatDate(event.starts_at)}
+                      {formatDate(eventData.starts_at)}
                     </div>
                   </div>
 
                   <div className="rounded-2xl border border-black/10 bg-[#FDFDFC] px-3 py-2 dark:border-white/10 dark:bg-[#0f0f0f]">
                     <div className="text-xs font-semibold text-black/60 dark:text-white/60">RSVPs</div>
-                    <div className="mt-1 font-medium text-black/70 dark:text-white/70">
-                      {event.rsvps_count ?? 0}
-                    </div>
+                    <div className="mt-1 font-medium text-black/70 dark:text-white/70">{eventData.rsvps_count ?? 0}</div>
                   </div>
                 </div>
 
-                {event.description ? (
+                {eventData.description ? (
                   <p className="mt-6 whitespace-pre-wrap text-base leading-7 text-black/70 dark:text-white/70">
-                    {event.description}
+                    {eventData.description}
                   </p>
                 ) : (
                   <p className="mt-6 text-base leading-7 text-black/60 dark:text-white/60">No description yet.</p>
@@ -162,7 +166,10 @@ export default function Show({ event, userRsvp }: Props) {
                     <div className="mt-5 rounded-2xl border border-black/10 bg-white p-4 text-sm dark:border-white/10 dark:bg-[#0f0f0f]">
                       <div className="text-black/60 dark:text-white/60">You’ll need an account to RSVP.</div>
                       <div className="mt-3">
-                        <Link className="underline underline-offset-4 hover:text-black dark:hover:text-white" href="/login">
+                        <Link
+                          className="underline underline-offset-4 hover:text-black dark:hover:text-white"
+                          href="/login"
+                        >
                           Log in to RSVP
                         </Link>
                       </div>
@@ -189,28 +196,38 @@ export default function Show({ event, userRsvp }: Props) {
                                 'rounded-xl border px-3 py-2 text-sm font-semibold shadow-sm transition-colors',
                                 // base border + hover only (NO bg here)
                                 'border-black/10 hover:bg-black/5 dark:border-white/10 dark:hover:bg-white/5',
-                                // state-specific background + text
-                                (value === 'going' && active)
-                                ? 'bg-emerald-600 text-white border-emerald-600 hover:bg-emerald-600 dark:bg-emerald-500 dark:text-black dark:border-emerald-500'
-                                : (value === 'not_going' && active)
-                                ? 'bg-red-600 text-white border-red-600 hover:bg-red-600 dark:bg-red-500 dark:text-black dark:border-red-500'
-                                : (value === 'interested' && active)
-                                ? 'bg-white text-black border-black/20 dark:bg-[#161615] dark:text-white dark:border-white/20'
-                                : 'bg-white text-black/70 dark:bg-[#161615] dark:text-white/70',   
+                                // state-specific background + text (soft tones)
+                                value === 'going' && active
+                                  ? 'bg-emerald-100 text-emerald-800 border-emerald-300 hover:bg-emerald-200 dark:bg-emerald-900/40 dark:text-emerald-300 dark:border-emerald-700'
+                                  : value === 'not_going' && active
+                                  ? 'bg-rose-100 text-rose-800 border-rose-300 hover:bg-rose-200 dark:bg-rose-900/40 dark:text-rose-300 dark:border-rose-700'
+                                  : value === 'interested' && active
+                                  ? 'bg-amber-100 text-amber-800 border-amber-300 hover:bg-amber-200 dark:bg-amber-900/40 dark:text-amber-300 dark:border-amber-700'
+                                  : 'bg-white text-black/70 dark:bg-[#161615] dark:text-white/70',
                                 processing ? 'opacity-60' : '',
-                                ].join(' ')}
+                              ].join(' ')}
                             >
                               {label}
                             </button>
                           );
                         })}
                       </div>
-
+                        {currentStatus && (
+                            <button
+                            type="button"
+                            onClick={() => router.delete(`/events/${eventData.slug}/rsvps`)}
+                            className="mt-3 text-xs underline text-black/60 hover:text-black dark:text-white/60 dark:hover:text-white"
+                        >
+                            Clear RSVP
+                            </button>
+                        )}
                       <div className="mt-4 text-sm text-black/60 dark:text-white/60">
                         {currentStatus ? (
                           <>
-                            Your RSVP:{' '}
-                            <span className="font-semibold text-black/70 dark:text-white/70">{currentStatus}</span>
+                            You're marked as:{' '}
+                            <span className="font-semibold text-black/70 dark:text-white/70">
+                              {rsvpLabels[currentStatus] ?? currentStatus}
+                            </span>
                           </>
                         ) : (
                           <>Pick an option to RSVP.</>

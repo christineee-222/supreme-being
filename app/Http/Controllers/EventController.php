@@ -14,6 +14,7 @@ class EventController extends Controller
     {
         $rsvpsCount = EventRsvp::query()
             ->where('event_id', $event->id)
+            ->where('status', 'going')
             ->count();
 
         $userRsvp = null;

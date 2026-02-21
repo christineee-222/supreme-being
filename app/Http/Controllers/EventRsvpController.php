@@ -62,6 +62,24 @@ class EventRsvpController extends Controller
         return new EventRsvpResource($rsvp);
     }
 
+    public function destroyMine(Request $request, Event $event)
+    {
+        $rsvp = EventRsvp::where('event_id', $event->id)
+            ->where('user_id', $request->user()->id)
+            ->first();
+
+        if ($rsvp) {
+            $this->authorize('delete', $rsvp);
+            $rsvp->delete();
+        }
+
+        if ($request->header('X-Inertia')) {
+            return redirect()->back();
+        }
+
+        return response()->json(['status' => 'deleted']);
+    }
+
     public function destroy(
         Request $request,
         Event $event,

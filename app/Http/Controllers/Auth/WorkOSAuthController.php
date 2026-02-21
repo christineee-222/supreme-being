@@ -76,8 +76,8 @@ final class WorkOSAuthController extends Controller
     }
 
     /**
-     * Redirect to WorkOS login (web + mobile entrypoint)
-     */
+    * Redirect to WorkOS login (web + mobile entrypoint)
+    */
     public function redirect(Request $request): RedirectResponse|\Symfony\Component\HttpFoundation\Response
     {
         Log::info('login route hit', [
@@ -88,11 +88,11 @@ final class WorkOSAuthController extends Controller
             'host' => $request->getHost(),
             'intended' => session('url.intended'),
             'is_inertia' => $request->header('X-Inertia') ? true : false,
+            'return_to' => $request->query('return_to'),
         ]);
 
         // Prevent redirect loop if already authenticated
         if (Auth::check()) {
-            // If this was triggered by an Inertia request, force a full navigation
             if ($request->header('X-Inertia')) {
                 return Inertia::location(route('dashboard'));
             }
@@ -100,35 +100,55 @@ final class WorkOSAuthController extends Controller
             return redirect()->route('dashboard');
         }
 
-        // If user navigated directly to /login, default intended to home
-        if (! session()->has('url.intended')) {
-            session(['url.intended' => route('home')]);
+        /**
+        * If caller provides a return_to query param, honor it by setting Laravel's
+        * intended URL (used by redirect()->intended()).
+        *
+        * Example: /login?return_to=/events/some-slug
+        */
+        $returnTo = (string) $request->query('return_to', '');
+
+        if ($returnTo !== '') {
+            // Very small open-redirect guard:
+            // - Allow relative paths like "/events/slug"
+            // - Allow absolute URLs only if same host
+            $isRelative = str_starts_with($returnTo, '/');
+            $parsedHost = parse_url($returnTo, PHP_URL_HOST);
+
+        if ($isRelative || ($parsedHost !== null && $parsedHost === $request->getHost())) {
+            session(['url.intended' => $returnTo]);
         }
-
-        [$clientId, $redirectUrl] = $this->configureWorkOS();
-
-        $state = (string) $request->query('state', '');
-
-        $authUrl = $this->buildUserManagementAuthorizeUrl(
-            clientId: $clientId,
-            redirectUrl: $redirectUrl,
-            state: $state,
-        );
-
-        Log::info('WorkOS redirect invoked (user_management/authorize)', [
-            'redirect_url' => $redirectUrl,
-            'state_len' => strlen($state),
-            'intended' => session('url.intended'),
-            'is_inertia' => $request->header('X-Inertia') ? true : false,
-        ]);
-
-        // ✅ KEY FIX: external redirects must be full-page navigations for Inertia
-        if ($request->header('X-Inertia')) {
-            return Inertia::location($authUrl);
-        }
-
-        return redirect()->away($authUrl);
     }
+
+    // If user navigated directly to /login and nothing set yet, default to home
+    if (! session()->has('url.intended')) {
+        session(['url.intended' => route('home')]);
+    }
+
+    [$clientId, $redirectUrl] = $this->configureWorkOS();
+
+    $state = (string) $request->query('state', '');
+
+    $authUrl = $this->buildUserManagementAuthorizeUrl(
+        clientId: $clientId,
+        redirectUrl: $redirectUrl,
+        state: $state,
+    );
+
+    Log::info('WorkOS redirect invoked (user_management/authorize)', [
+        'redirect_url' => $redirectUrl,
+        'state_len' => strlen($state),
+        'intended' => session('url.intended'),
+        'is_inertia' => $request->header('X-Inertia') ? true : false,
+    ]);
+
+    // External redirects must be full-page navigations for Inertia
+    if ($request->header('X-Inertia')) {
+        return Inertia::location($authUrl);
+    }
+
+    return redirect()->away($authUrl);
+}
 
     /**
      * WorkOS OAuth callback handler

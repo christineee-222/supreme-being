@@ -48,6 +48,11 @@ class Event extends Model
         return $this->belongsTo(EssenceNumen::class, 'essence_numen_id');
     }
 
+    public function getRouteKeyName(): string
+    {
+        return 'slug';
+    }
+
     public function rsvps(): HasMany
     {
         return $this->hasMany(EventRsvp::class);

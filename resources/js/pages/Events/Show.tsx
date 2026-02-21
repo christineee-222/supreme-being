@@ -66,11 +66,18 @@ function statusPill(status: string | null) {
   }
 }
 
-export default function Show({ event: eventData, userRsvp }: Props) {
+export default function Show({ event, userRsvp }: Props) {
   const { auth } = usePage<SharedData>().props;
   const [processing, setProcessing] = React.useState(false);
 
   const currentStatus = userRsvp?.status ?? null;
+
+  const startsAtMs = event.starts_at ? new Date(event.starts_at).getTime() : null;
+
+  // RSVP is closed if cancelled, or if we have a starts_at and it's in the past.
+  const rsvpClosed =
+    (event.status ?? '').toLowerCase() === 'cancelled' ||
+    (startsAtMs !== null && !Number.isNaN(startsAtMs) && startsAtMs <= Date.now());
 
   const rsvpLabels: Record<string, string> = {
     going: 'Going',
@@ -80,7 +87,7 @@ export default function Show({ event: eventData, userRsvp }: Props) {
 
   function rsvp(status: 'going' | 'interested' | 'not_going') {
     router.post(
-      `/events/${eventData.slug}/rsvps`,
+      `/events/${event.slug}/rsvps`,
       { status },
       {
         preserveScroll: true,
@@ -90,11 +97,22 @@ export default function Show({ event: eventData, userRsvp }: Props) {
     );
   }
 
+  function clearRsvp() {
+    router.delete(`/events/${event.slug}/rsvps`, {
+      preserveScroll: true,
+      onStart: () => setProcessing(true),
+      onFinish: () => setProcessing(false),
+    });
+  }
+
   return (
     <>
-      <Head title={eventData.title}>
+      <Head title={event.title}>
         <link rel="preconnect" href="https://fonts.bunny.net" />
-        <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600" rel="stylesheet" />
+        <link
+          href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600"
+          rel="stylesheet"
+        />
       </Head>
 
       <div className="min-h-screen bg-[#FDFDFC] text-[#1b1b18] dark:bg-[#0a0a0a] dark:text-[#EDEDEC]">
@@ -111,11 +129,13 @@ export default function Show({ event: eventData, userRsvp }: Props) {
 
               <span className="hidden text-xs text-black/40 dark:text-white/40 sm:block">•</span>
 
-              <div className="hidden text-xs text-black/60 dark:text-white/60 sm:block">Action layer</div>
+              <div className="hidden text-xs text-black/60 dark:text-white/60 sm:block">
+                Action layer
+              </div>
             </div>
 
             <div className="flex items-center gap-3">
-              {statusPill(eventData.status)}
+              {statusPill(event.status)}
               <Link
                 href="/"
                 className="rounded-xl border border-black/10 bg-white px-4 py-2 text-sm font-medium shadow-sm hover:bg-black/5 dark:border-white/10 dark:bg-[#161615] dark:hover:bg-white/5"
@@ -129,28 +149,32 @@ export default function Show({ event: eventData, userRsvp }: Props) {
           <section className="mt-6 rounded-3xl border border-black/10 bg-white p-8 shadow-sm dark:border-white/10 dark:bg-[#161615] lg:p-12">
             <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
               <div className="min-w-0">
-                <h1 className="text-2xl font-semibold tracking-tight lg:text-4xl">{eventData.title}</h1>
+                <h1 className="text-2xl font-semibold tracking-tight lg:text-4xl">{event.title}</h1>
 
                 <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-black/60 dark:text-white/60">
                   <div className="rounded-2xl border border-black/10 bg-[#FDFDFC] px-3 py-2 dark:border-white/10 dark:bg-[#0f0f0f]">
                     <div className="text-xs font-semibold text-black/60 dark:text-white/60">Starts</div>
                     <div className="mt-1 font-medium text-black/70 dark:text-white/70">
-                      {formatDate(eventData.starts_at)}
+                      {formatDate(event.starts_at)}
                     </div>
                   </div>
 
                   <div className="rounded-2xl border border-black/10 bg-[#FDFDFC] px-3 py-2 dark:border-white/10 dark:bg-[#0f0f0f]">
                     <div className="text-xs font-semibold text-black/60 dark:text-white/60">RSVPs</div>
-                    <div className="mt-1 font-medium text-black/70 dark:text-white/70">{eventData.rsvps_count ?? 0}</div>
+                    <div className="mt-1 font-medium text-black/70 dark:text-white/70">
+                      {event.rsvps_count ?? 0}
+                    </div>
                   </div>
                 </div>
 
-                {eventData.description ? (
+                {event.description ? (
                   <p className="mt-6 whitespace-pre-wrap text-base leading-7 text-black/70 dark:text-white/70">
-                    {eventData.description}
+                    {event.description}
                   </p>
                 ) : (
-                  <p className="mt-6 text-base leading-7 text-black/60 dark:text-white/60">No description yet.</p>
+                  <p className="mt-6 text-base leading-7 text-black/60 dark:text-white/60">
+                    No description yet.
+                  </p>
                 )}
               </div>
 
@@ -164,11 +188,13 @@ export default function Show({ event: eventData, userRsvp }: Props) {
 
                   {!auth?.user ? (
                     <div className="mt-5 rounded-2xl border border-black/10 bg-white p-4 text-sm dark:border-white/10 dark:bg-[#0f0f0f]">
-                      <div className="text-black/60 dark:text-white/60">You’ll need an account to RSVP.</div>
+                      <div className="text-black/60 dark:text-white/60">
+                        You’ll need an account to RSVP.
+                      </div>
                       <div className="mt-3">
                         <Link
+                          href={`/login?return_to=${encodeURIComponent(`/events/${event.slug}`)}`}
                           className="underline underline-offset-4 hover:text-black dark:hover:text-white"
-                          href="/login"
                         >
                           Log in to RSVP
                         </Link>
@@ -191,19 +217,23 @@ export default function Show({ event: eventData, userRsvp }: Props) {
                               key={value}
                               type="button"
                               onClick={() => rsvp(value)}
-                              disabled={processing}
+                              disabled={processing || rsvpClosed}
                               className={[
                                 'rounded-xl border px-3 py-2 text-sm font-semibold shadow-sm transition-colors',
-                                // base border + hover only (NO bg here)
-                                'border-black/10 hover:bg-black/5 dark:border-white/10 dark:hover:bg-white/5',
-                                // state-specific background + text (soft tones)
-                                value === 'going' && active
+                                // when closed: greyed out, no hover, no pointer
+                                rsvpClosed
+                                  ? 'cursor-not-allowed border-black/10 bg-black/5 text-black/40 dark:border-white/10 dark:bg-white/5 dark:text-white/40'
+                                  : 'border-black/10 hover:bg-black/5 dark:border-white/10 dark:hover:bg-white/5',
+                                // state-specific background + text (soft tones) — only when not closed
+                                !rsvpClosed && value === 'going' && active
                                   ? 'bg-emerald-100 text-emerald-800 border-emerald-300 hover:bg-emerald-200 dark:bg-emerald-900/40 dark:text-emerald-300 dark:border-emerald-700'
-                                  : value === 'not_going' && active
+                                  : !rsvpClosed && value === 'not_going' && active
                                   ? 'bg-rose-100 text-rose-800 border-rose-300 hover:bg-rose-200 dark:bg-rose-900/40 dark:text-rose-300 dark:border-rose-700'
-                                  : value === 'interested' && active
+                                  : !rsvpClosed && value === 'interested' && active
                                   ? 'bg-amber-100 text-amber-800 border-amber-300 hover:bg-amber-200 dark:bg-amber-900/40 dark:text-amber-300 dark:border-amber-700'
-                                  : 'bg-white text-black/70 dark:bg-[#161615] dark:text-white/70',
+                                  : !rsvpClosed
+                                  ? 'bg-white text-black/70 dark:bg-[#161615] dark:text-white/70'
+                                  : '',
                                 processing ? 'opacity-60' : '',
                               ].join(' ')}
                             >
@@ -212,27 +242,34 @@ export default function Show({ event: eventData, userRsvp }: Props) {
                           );
                         })}
                       </div>
-                        {currentStatus && (
-                            <button
-                            type="button"
-                            onClick={() => router.delete(`/events/${eventData.slug}/rsvps`)}
-                            className="mt-3 text-xs underline text-black/60 hover:text-black dark:text-white/60 dark:hover:text-white"
+
+                      {/* Closed message */}
+                      {rsvpClosed && (
+                        <div className="mt-3 text-center text-sm">
+                          <Link
+                            href="/events"
+                            className="underline underline-offset-4 text-black/60 hover:text-black dark:text-white/60 dark:hover:text-white"
+                          >
+                            Eyes to the horizon,
+                          </Link>
+                        </div>
+                      )}
+
+                      {currentStatus && !rsvpClosed && (
+                        <button
+                          type="button"
+                          onClick={clearRsvp}
+                          disabled={processing}
+                          className={[
+                            'mt-3 inline-flex items-center justify-center rounded-xl border px-3 py-2 text-xs font-semibold shadow-sm transition-colors',
+                            'border-black/10 bg-white hover:bg-black/5',
+                            'dark:border-white/10 dark:bg-[#161615] dark:hover:bg-white/5',
+                            processing ? 'opacity-60' : '',
+                          ].join(' ')}
                         >
-                            Clear RSVP
-                            </button>
-                        )}
-                      <div className="mt-4 text-sm text-black/60 dark:text-white/60">
-                        {currentStatus ? (
-                          <>
-                            You're marked as:{' '}
-                            <span className="font-semibold text-black/70 dark:text-white/70">
-                              {rsvpLabels[currentStatus] ?? currentStatus}
-                            </span>
-                          </>
-                        ) : (
-                          <>Pick an option to RSVP.</>
-                        )}
-                      </div>
+                          Clear RSVP
+                        </button>
+                      )}
                     </div>
                   )}
 
@@ -253,25 +290,38 @@ export default function Show({ event: eventData, userRsvp }: Props) {
                   Event threads are coming soon — a calm place for logistics, questions, and coordination.
                 </p>
               </div>
-              <div className="hidden text-xs text-black/60 dark:text-white/60 lg:block">Clarity → Coordination → Action</div>
+              <div className="hidden text-xs text-black/60 dark:text-white/60 lg:block">
+                Clarity → Coordination → Action
+              </div>
             </div>
 
             <div className="mt-6 rounded-2xl border border-black/10 bg-[#FDFDFC] p-4 dark:border-white/10 dark:bg-[#0f0f0f]">
               {!auth?.user ? (
                 <div className="text-sm text-black/60 dark:text-white/60">
-                  <div className="font-semibold text-black/70 dark:text-white/70">Log in to join (soon)</div>
-                  <div className="mt-1">Discussion will be available after launch. For now, RSVP is the best signal.</div>
+                  <div className="font-semibold text-black/70 dark:text-white/70">
+                    Log in to join (soon)
+                  </div>
+                  <div className="mt-1">
+                    Discussion will be available after launch. For now, RSVP is the best signal.
+                  </div>
                   <div className="mt-3">
-                    <Link className="underline underline-offset-4 hover:text-black dark:hover:text-white" href="/login">
+                    <Link
+                      className="underline underline-offset-4 hover:text-black dark:hover:text-white"
+                      href="/login"
+                    >
                       Log in
                     </Link>
                   </div>
                 </div>
               ) : (
                 <div className="text-sm text-black/60 dark:text-white/60">
-                  <div className="font-semibold text-black/70 dark:text-white/70">Posting is coming soon</div>
+                  <div className="font-semibold text-black/70 dark:text-white/70">
+                    Posting is coming soon
+                  </div>
                   <div className="mt-3">
-                    <label className="text-xs font-semibold text-black/60 dark:text-white/60">Add a comment</label>
+                    <label className="text-xs font-semibold text-black/60 dark:text-white/60">
+                      Add a comment
+                    </label>
                     <textarea
                       disabled
                       rows={3}
@@ -279,7 +329,9 @@ export default function Show({ event: eventData, userRsvp }: Props) {
                       className="mt-2 w-full resize-none rounded-2xl border border-black/10 bg-white p-3 text-sm text-black/70 shadow-sm placeholder:text-black/40 disabled:cursor-not-allowed disabled:opacity-70 dark:border-white/10 dark:bg-[#161615] dark:text-white/70 dark:placeholder:text-white/40"
                     />
                     <div className="mt-3 flex items-center justify-between">
-                      <div className="text-xs text-black/50 dark:text-white/50">Be kind. Keep it practical. No dunking.</div>
+                      <div className="text-xs text-black/50 dark:text-white/50">
+                        Be kind. Keep it practical. No dunking.
+                      </div>
                       <button
                         type="button"
                         disabled
@@ -313,7 +365,9 @@ export default function Show({ event: eventData, userRsvp }: Props) {
                 Forums
               </a>
             </div>
-            <div className="max-w-3xl">Events are the action layer: show up, coordinate, and make participation visible.</div>
+            <div className="max-w-3xl">
+              Events are the action layer: show up, coordinate, and make participation visible.
+            </div>
           </footer>
         </main>
       </div>

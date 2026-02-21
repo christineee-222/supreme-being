@@ -62,10 +62,16 @@ class EventRsvpController extends Controller
         return new EventRsvpResource($rsvp);
     }
 
-    public function destroyMine(Request $request, Event $event)
+    public function destroyMine(Request $request, Event $event): JsonResponse|RedirectResponse
     {
-        $rsvp = EventRsvp::where('event_id', $event->id)
-            ->where('user_id', $request->user()->id)
+        $user = $request->user();
+        if (! $user) {
+            abort(401);
+        }
+
+        $rsvp = EventRsvp::query()
+            ->where('event_id', $event->id)
+            ->where('user_id', $user->id)
             ->first();
 
         if ($rsvp) {
